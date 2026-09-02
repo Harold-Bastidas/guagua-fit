@@ -26,7 +26,7 @@ El "wow" para José: **abre el link en su celular**, ve el box, toca una zona, y
 - **Paleta confirmada por José: negro, crema y blanco.** Sin color de acento cromático. El "punch" lo da el contraste (blanco puro para CTAs y estados activos); la crema es el tono ambiente cálido. Estética editorial premium, encaja bien con "keynote de Apple".
 - **Demo, no producción.** Prioridad: que se vea y se sienta el concepto. No robustez, no SEO perfecto, no CMS.
 - **Rendimiento móvil es innegociable.** José la va a abrir en su teléfono. Si tarda o va a tirones, la demo fracasa en el peor momento.
-- **Cero backend.** Sitio 100% estático. CTA de producto = botón a WhatsApp / "dónde comprar" (asumido, pendiente de confirmar con José — ver "Decisiones de José").
+- **Cero backend.** Sitio 100% estático. CTA de producto = botón a WhatsApp (confirmado por José; falta verificar el formato del número — ver "Decisiones de José").
 - **Público final:** personas que entrenan crossfit (compran barras, discos, kettlebells, anillas, cuerdas, cajones, remos, ropa, accesorios).
 
 ## Premises
