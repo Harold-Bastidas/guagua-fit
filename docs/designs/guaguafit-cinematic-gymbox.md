@@ -22,7 +22,7 @@ El "wow" para José: **abre el link en su celular**, ve el box, toca una zona, y
 
 ## Constraints
 
-- **Existe el logo + datos reales de 1 zona.** Logo = **el cráneo de un cuy** (*Cavia porcellus*) estilizado y agresivo (`LOGO JOSE NEGRO PNG.png`) + lockup "GUAGUA FIT" con textura grunge. José dio los 3 productos + precios + WhatsApp de la zona Grips y Muñequeras (ver "Decisiones de José"). Falta: ilustración del box (por IA), fotos de producto, titular+frase de la sección.
+- **Existe el logo + datos reales de 1 zona.** Logo = **el cráneo de un cuy** (*Cavia porcellus*) estilizado y agresivo (`LOGO JOSE NEGRO PNG.png`) + lockup "GUAGUA FIT" con textura grunge. José dio los 3 productos con precio, descripción y foto (`catalogo/*.jpg`), el WhatsApp, y un borrador aprobable del copy de sección. Falta solo: la ilustración del box (por IA) y normalizar el fondo de la foto de Iron Grips.
 - **Paleta confirmada por José: negro, crema y blanco.** Sin color de acento cromático. El "punch" lo da el contraste (blanco puro para CTAs y estados activos); la crema es el tono ambiente cálido. Estética editorial premium, encaja bien con "keynote de Apple".
 - **Demo, no producción.** Prioridad: que se vea y se sienta el concepto. No robustez, no SEO perfecto, no CMS.
 - **Rendimiento móvil es innegociable.** José la va a abrir en su teléfono. Si tarda o va a tirones, la demo fracasa en el peor momento.
@@ -33,10 +33,10 @@ El "wow" para José: **abre el link en su celular**, ve el box, toca una zona, y
 
 > Revisadas tras `/plan-eng-review` + voz externa. El plan pasó de "esqueleto de 4 zonas a fidelidad placeholder" a **vertical slice de 1 zona al 100%**.
 
-1. **Vertical slice.** La demo se construye con **UNA zona completa y real: Grips y Muñequeras** (`id: grips`) — la zona para la que José dio productos, precios y (pronto) fotos reales. Ilustración real de esa esquina del box, motion afinado, copy y precios reales. Las otras 3 zonas (Levantamiento, Kettlebells, Cardio) existen como hotspots visibles pero muestran "Pronto" al tocarlas. Si José aprueba el concepto, se expanden rápido. Una zona al 100% convence más que cuatro al 40%.
+1. **Vertical slice.** La demo se construye con **UNA zona completa y real: Grips y Muñequeras** (`id: grips`) — la zona para la que José dio productos, precios, descripciones y fotos reales. Ilustración real de esa esquina del box, motion afinado, copy y precios reales. Las otras 3 zonas (Levantamiento, Kettlebells, Cardio) existen como hotspots visibles pero muestran "Pronto" al tocarlas. Si José aprueba el concepto, se expanden rápido. Una zona al 100% convence más que cuatro al 40%.
 2. **El gymBox = escena 2D ilustrada a pantalla completa con hotspots.** Tocar una zona hace un **zoom por `transform`** (scale+translate sobre un wrapper) + panel con los productos. Sin 3D, sin WebGL. **La misma técnica corre en móvil y desktop** (móvil no es una vista degradada — es cámara-lite: el mismo zoom con menos coreografía).
 3. **El objetivo #1 es la aprobación de José, que la va a abrir desde su teléfono.** Por eso el gymBox tiene que funcionar y sentirse bien en móvil, no solo en desktop.
-4. **Las 5 preguntas a José están respondidas** (ver "Decisiones de José"): paleta negro/crema/blanco, logo = cráneo de cuy, ilustración por IA, CTA WhatsApp, español-only. Además José dio los 3 productos + precios de la zona slice (Grips y Muñequeras).
+4. **Las 5 preguntas a José están respondidas** (ver "Decisiones de José"): paleta negro/crema/blanco, logo = cráneo de cuy, ilustración por IA, CTA WhatsApp, español-only. Además José dio los 3 productos (precio + descripción + foto), el WhatsApp y un borrador del copy de sección.
 5. **Se despliega en Vercel con URL pública** para que José la abra desde el teléfono.
 
 Confirmadas por el usuario en la revisión.
@@ -90,17 +90,24 @@ src/data/site.json        { whatsapp: "57XXXXXXXXXX", waMsg: "Hola, quiero info 
 src/data/zonas.json       [{ id, nombre, hotspot: {left, top},   // % sobre la escena, centro del marcador
                               zoom: {scale, x, y},               // destino de la cámara
                               activa: bool, productos: [slug] }]
-src/data/productos.json    [{ slug, nombre, zona, imagen, precio }]  // precio en COP, entero
+src/data/productos.json    [{ slug, nombre, zona, imagen, precio, descripcion }]  // precio en COP entero
 ```
 
-Para el slice: `zonas.json` tiene las 4 zonas pero solo `grips` con `activa: true`. **Los precios son reales** (José los dio) → se muestran; se formatean en el componente como `$140.000` (separador de miles `.`, formato Colombia). Datos reales de la zona:
+Para el slice: `zonas.json` tiene las 4 zonas pero solo `grips` con `activa: true`. **Precio y descripción son reales** (José los dio) → se muestran; el precio se formatea en el componente como `$140.000` (separador de miles `.`, formato Colombia).
 
-```json
-// productos.json (zona "grips")
-[ { "slug": "sun-grips",  "nombre": "Sun Grips",  "zona": "grips", "precio": 140000 },
-  { "slug": "iron-grips", "nombre": "Iron Grips", "zona": "grips", "precio": 150000 },
-  { "slug": "wristbands", "nombre": "Wristbands",  "zona": "grips", "precio":  35000 } ]
-```
+**Datos reales de la zona `grips`** (descripciones = las de José, ligeramente limpiadas; José aprueba el texto final):
+
+| slug | nombre | precio | imagen | descripción (borrador) |
+|---|---|---|---|---|
+| `sun-grips` | Sun Grips | $140.000 | `catalogo/SunGrips.jpg` | "Máxima adherencia y cero distracciones: agarre brutal sin importar el tipo de barra." |
+| `iron-grips` | Iron Grips | $150.000 | `catalogo/IronGrips.jpg` | "Calleras de caucho para atletas que no negocian su rendimiento." |
+| `wristbands` | Wristbands | $35.000 | `catalogo/Wristbands.jpg` | "Soporte firme en cada WOD. Absorben el sudor y protegen tus muñecas en clean & jerk, snatch, handstand push-ups y toda la gimnasia." |
+
+**Fotos:** en `catalogo/` (portrait ~850×1280, product shots estudio). Se mueven a `src/assets/productos/` para `astro:assets`.
+- `Wristbands.jpg` — fondo blanco limpio, negro+blanco. Perfecta para la paleta.
+- `SunGrips.jpg` — fondo gris degradado neutro, grips negros. OK.
+- `IronGrips.jpg` — **fondo lila/rosa** (choca con negro/crema) y el producto es menta+negro. **Task:** normalizar el fondo (recortar el producto o recolor a neutro) antes de usarla en la sección keynote.
+- Los productos traen su propio color (Iron Grips es menta): la paleta negro/crema/blanco es el **marco del sitio**, no de los productos — como el sitio de Apple es blanco/negro y los iPhones son de colores.
 
 Agregar un producto = editar el JSON. Sin CMS.
 
@@ -229,23 +236,25 @@ Ningún modo de fallo es silencioso-y-sin-manejo. Sin gaps críticos.
 
 ## Decisiones de José (confirmadas 2026-09-02)
 
-1. **Paleta:** negro, crema, blanco. Sin acento cromático. → tokens en "Identidad visual".
-2. **Logo:** el cráneo de un **cuy** (*Cavia porcellus*). El motivo puede aparecer sutil en la ilustración; el copy puede tener un guiño (sin forzarlo).
-3. **Escena del box: generada por IA.** Confirmado. Ítem más caro del slice (~1-2 h de generación + ajuste).
-4. **CTA: WhatsApp** — José pasó un número de Colombia con formato válido (+57 + 10 dígitos). Vive en `src/data/site.json` (se publica con el sitio), fuera de este plan. Link: `https://wa.me/57<10 dígitos>?text=<mensaje pre-rellenado>`.
+1. **Paleta:** negro, crema, blanco. Sin acento cromático (el marco del sitio; los productos traen su color). → tokens en "Identidad visual".
+2. **Logo:** el cráneo de un **cuy** (*Cavia porcellus*). Assets: `LOGO JOSE NEGRO PNG.png` (sobre claro), `logo veige.png` (cráneo blanco/crema para sobre negro — 4500×4500), `LETRAS GUAGUA FIT 2.png` (wordmark grunge). El motivo del cráneo puede aparecer en la ilustración; ya está grabado en los productos.
+3. **Escena del box: generada por IA.** Confirmado. Ítem más caro del slice (~1-2 h).
+4. **CTA: WhatsApp** — número de Colombia, formato válido (+57 + 10 dígitos). Vive en `src/data/site.json`, fuera de este plan. Link `https://wa.me/57<10 dígitos>?text=<mensaje>`.
 5. **Idioma:** español-only.
 
-**Zona del slice: Grips y Muñequeras** (`id: grips`) — José dio 3 productos con precio real:
+**Zona del slice: Grips y Muñequeras** (`id: grips`) — 3 productos con precio, descripción y foto reales. Ver la tabla completa en "Datos". Resumen:
 
-| slug | nombre | precio (COP) |
-|---|---|---|
-| `sun-grips` | Sun Grips | 140.000 |
-| `iron-grips` | Iron Grips | 150.000 |
-| `wristbands` | Wristbands | 35.000 |
+| producto | precio | foto | descripción (borrador, José aprueba) |
+|---|---|---|---|
+| Sun Grips | $140.000 | `catalogo/SunGrips.jpg` (fondo gris ok) | agarre brutal en cualquier barra |
+| Iron Grips | $150.000 | `catalogo/IronGrips.jpg` (⚠️ fondo lila, normalizar) | calleras de caucho, sin negociar rendimiento |
+| Wristbands | $35.000 | `catalogo/Wristbands.jpg` (fondo blanco, perfecta) | soporte de muñeca para clean & jerk, snatch, HSPU |
 
-Los precios son reales → **se muestran** (esto revierte la decisión previa de "sin precios", que era para evitar precios inventados). Formato en el componente: `$140.000` (separador de miles `.`, estilo Colombia).
+Precios reales → **se muestran** (revierte la decisión previa de "sin precios", que era para evitar inventados).
 
-**Dueño del copy:** José da los nombres de producto (ya están). Falta el **titular de la sección + 1 frase de apoyo** — los escribe **[definir: vos o José]**. Si los escribís vos, marcarlos como placeholder al presentar.
+**Copy de sección — BORRADOR (José aprueba):**
+- Titular: **"El agarre no se negocia."**
+- Frase: "Calleras y muñequeras para los WODs donde el agarre decide."
 
 ## Success Criteria
 
@@ -266,15 +275,15 @@ Los precios son reales → **se muestran** (esto revierte la decisión previa de
 ## Dependencies
 
 - **La ilustración de la zona Grips y Muñequeras** (por IA, confirmado) es el bloqueante duro. Se puede arrancar todo lo demás con un placeholder y sustituir sin tocar código.
-- **Fotos de los 3 productos** (Sun Grips, Iron Grips, Wristbands) — José las tiene que pasar, o se usan placeholders marcados como tal.
-- **Titular de la sección + 1 frase de apoyo** — dueño por definir (los nombres y precios de producto ya los dio José).
+- Normalizar el fondo de `catalogo/IronGrips.jpg` (lila → neutro). Las otras 2 fotos ya sirven.
+- José aprueba (o corrige) el borrador del copy de sección y las descripciones limpiadas.
 - Cuenta de Vercel (paso de usuario en web).
 
 ## Next Steps
 
 Total estimado del slice: **~3-5 h (CC)**, la mitad en la ilustración. Expandir a las otras 3 zonas post-aprobación: ~1-2 h.
 
-**Paso 0 — HECHO:** las 5 preguntas están respondidas (ver "Decisiones de José"). Pendiente solo: titular + frase de la sección (los nombres de producto y el WhatsApp ya están).
+**Paso 0 — HECHO:** las 5 preguntas están respondidas (ver "Decisiones de José"). Pendiente solo: José aprueba el borrador del copy + normalizar la foto de Iron Grips.
 
 **Slice — 1 zona completa (~3-5 h):**
 1. **Scaffold** Astro + Tailwind + GSAP (`gsap` + `ScrollTrigger`, modular) + Playwright. `zonas.json` (4 zonas, solo Grips `activa`) + `productos.json` (3 reales de Grips y Muñequeras). `scripts/check-data.mjs` en `prebuild`. `astro check`.
@@ -322,14 +331,14 @@ Fuente editable del wireframe: `scratchpad/wireframe.html` de la sesión (esquem
 
 ## What already exists
 
-Repo nuevo. Único activo reutilizable: el logo (`LOGO JOSE NEGRO PNG.png` — cráneo de cuy; `LETRAS GUAGUA FIT 2.png` — wordmark con textura grunge). Hay también `LOGO JOSE B BLANCO.png` / `LOGO JOSE BLANCO PNG.png` (versiones claras — útiles sobre negro). No hay DESIGN.md, ni componentes, ni patrones previos.
+Repo nuevo. Único activo reutilizable: el logo (`LOGO JOSE NEGRO PNG.png` — cráneo de cuy; `LETRAS GUAGUA FIT 2.png` — wordmark con textura grunge). Versiones claras: `LOGO JOSE B BLANCO.png`, `LOGO JOSE BLANCO PNG.png`, `logo veige.png` (cráneo blanco/crema 4500×4500). Fotos de producto: `catalogo/{SunGrips,IronGrips,Wristbands}.jpg`. No hay DESIGN.md, ni componentes, ni patrones previos.
 
 ## Implementation Tasks
 Sintetizado de `/office-hours`, `/plan-design-review` (F1-F4), `/plan-eng-review` (A1-A3, P1, Q1) y la voz externa (giro a vertical slice). Orden = orden de build.
 
 - [x] **T0 (P1, human: ~5min)** — proceso — Preguntas a José respondidas (paleta, logo, IA, WhatsApp, idioma)
   - Surfaced by: Voz externa #4 — "no hay paso 'preguntarle a José' antes de construir"
-  - Pendiente: titular + frase de la sección keynote (nombres de producto y WhatsApp ya dados)
+  - Pendiente: José aprueba el borrador del copy; normalizar foto Iron Grips
 - [ ] **T1 (P1, human: ~30min / CC: ~15min)** — scaffold — Astro + Tailwind + GSAP modular + Playwright + `check-data.mjs`
   - Surfaced by: A3 (check de ids), P1 (imports modulares)
   - Files: `astro.config.mjs`, `tailwind.config`, `scripts/check-data.mjs`, `package.json`, `src/data/*.json`
@@ -345,14 +354,20 @@ Sintetizado de `/office-hours`, `/plan-design-review` (F1-F4), `/plan-eng-review
   - Surfaced by: F3 wayfinding
   - Files: `src/components/Nav.astro`, `src/layouts/Base.astro`
   - Verify: sticky en todo el scroll; "Grips y Muñequeras" ancla a `#grips`
-- [ ] **T5 (P1, human: ~1.5h / CC: ~20min)** — keynote — Sección `#grips`: layout fijo + grilla de productos + estados
+- [ ] **T5 (P1, human: ~1.5h / CC: ~20min)** — keynote — Sección `#grips`: layout fijo + grilla de 3 productos + estados
   - Surfaced by: F4 specificity + estados
-  - Files: `src/components/ZonaKeynote.astro`, `src/components/ProductGrid.astro`
-  - Verify: badge + título/frase/CTA izq + `<Image>` der + 4 puntos; sin salto de layout al cargar; CTA WhatsApp presente
-- [ ] **T6 (P1, human: ~1-2h)** — assets — Ilustración real de la esquina de grips y muñequeras (IA o foto según José)
+  - Files: `src/components/ZonaKeynote.astro`, `src/components/ProductGrid.astro`, `src/data/productos.json`, `src/assets/productos/{sun-grips,iron-grips,wristbands}.jpg`
+  - Datos: nombres/precios/descripciones/fotos reales de José (ver "Datos"). Producto héroe de la sección = Sun Grips o Iron Grips (elegir el de foto más limpia).
+  - Verify: badge + título "El agarre no se negocia" + frase + CTA izq + `<Image>` der + 4 puntos; grilla muestra los 3 con precio `$140.000`; sin salto de layout; CTA WhatsApp con `waMsg` por producto
+- [ ] **T5b (P2, human: ~20min)** — assets — Normalizar el fondo de `IronGrips.jpg` (lila → neutro/recorte)
+  - Surfaced by: foto de José con fondo que choca con la paleta
+  - Files: `src/assets/productos/iron-grips.jpg`
+  - Verify: la foto se siente de la misma familia que SunGrips/Wristbands sobre negro o crema
+- [ ] **T6 (P1, human: ~1-2h)** — assets — Ilustración de la escena del box por IA (esquina de grips y muñequeras)
   - Surfaced by: Voz externa #2 — "el 100% del wow, sub-financiado"; es el ítem más caro
   - Files: `src/assets/box-grips.*`, ajustar `zonas.json` hotspot/zoom para que caiga limpio
-  - Verify: la zona se lee claramente; el hotspot cae sobre el rack/barras; pasa por `<Image priority>`, master ≤ ~220 KB AVIF@1600w
+  - Prompt base: interior de box crossfit, esquina de calleras/grips colgando de una barra, paleta negro/crema/blanco, cráneo de cuy grabado en la pared (usar `logo veige.png` como referencia), luz dura, sin gente
+  - Verify: la zona se lee claramente; el hotspot cae sobre los grips; `<Image priority>`, master ≤ ~220 KB AVIF@1600w
 - [ ] **T7 (P2, human: ~45min / CC: ~10min)** — assets — `astro:assets` en todos los componentes de imagen + fuentes self-host
   - Surfaced by: A1 + voz externa #7 (font-display)
   - Files: `GymBox.astro`, `ZonaKeynote.astro`, `ProductGrid.astro`, `src/styles/fonts.css`
