@@ -83,17 +83,19 @@ Sin páginas de detalle `/producto/[slug]` en la demo (queda para v2). El CTA de
 ### Datos (archivos, no backend)
 
 ```
-src/data/zonas.json       [{ id, nombre, hotspot: {x,y,w,h}, color, productos: [slug] }]
+src/data/zonas.json       [{ id, nombre, hotspot: {x,y,w,h}, color, imagen, productos: [slug] }]
 src/data/productos.json    [{ slug, nombre, zona, imagen }]
 ```
 
 Modelo mínimo para la demo (sin `precio`/`descripcion`: precios inventados confundirían a José sobre qué está aprobando). Los campos de catálogo real se agregan cuando llegue el material de José. Agregar un producto = editar un JSON. Sin CMS.
 
+**`zonas.json` `.id` es la única fuente de verdad del identificador de zona.** Lo consumen: el ancla `#{id}` de la sección keynote, el scroll-spy de la nav, el `href` del hotspot, el link de la tarjeta móvil y el "Ver zona" del panel. Un `id` desincronizado = un link muerto silencioso. Salvaguarda: un check de build (`scripts/check-data.mjs`, corre en `prebuild`) que falla si algún `productos.json[].zona` no existe en `zonas.json[].id`, o si un `zonas.json[].productos[]` referencia un slug inexistente. Para la demo se usan JSON planos importados; Content Collections de Astro (schema Zod) es el upgrade natural para v2 si el catálogo crece.
+
 ### Componente GymBox
 
 - **Desktop:** `<svg viewBox="0 0 1600 900">` con la ilustración de fondo como `<image>` y 4 `<rect>` transparentes (uno por zona).
   - **Affordance (siempre visible, no depende de hover):** sobre cada `<rect>`, un marcador = círculo Ø34 con borde naranja `#FF5722` + un "+" + etiqueta corta en mayúsculas (`LEVANTAMIENTO`, etc.) sobre fondo `rgba(18,23,43,.85)`. Al cargar la escena, un pulso sutil (`scale`/`opacity`, 1 ciclo, se desactiva con `prefers-reduced-motion`). Hover/focus solo *aumenta* el énfasis (halo más grande) — nunca es el único indicio. La hero-copy incluye la instrucción explícita: **"Tocá una zona para ver qué hay."**
-  - **Técnica de cámara:** GSAP tween sobre el **atributo `viewBox`** del `<svg>` (interpolando los 4 números hacia el bounding box del hotspot con padding). Nada de `transform: scale` sobre el SVG ni de `transformOrigin` en unidades de usuario — animar `viewBox` evita todos los gotchas de origen en SVG y da el paneo+zoom en un solo tween. Duración ~0.8s, `power3.inOut`.
+  - **Técnica de cámara:** GSAP tween sobre el **atributo `viewBox`** del `<svg>` vía el **`AttrPlugin` de GSAP** (`gsap.core` no anima atributos; `gsap.registerPlugin(AttrPlugin)`). Se interpolan los 4 números hacia el bounding box del hotspot con padding: `gsap.to(svg, { attr: { viewBox: "420 210 640 360" }, duration: 0.8, ease: "power3.inOut" })`. Nada de `transform: scale` sobre el SVG ni de `transformOrigin` en unidades de usuario — animar `viewBox` evita todos los gotchas de origen en SVG y da el paneo+zoom en un solo tween. **El prototipo de la Pasada 1 debe confirmar que el AttrPlugin interpola el string de 4 números limpio** (es su comportamiento documentado, pero hay que verlo en el navegador objetivo).
   - **Foco visual (no se anima `filter: blur()`):** la secuencia es (1) tween de `viewBox` — zoom real hacia la zona; (2) al asentarse, fade-in de un **scrim oscuro** (div a pantalla completa, gradiente, tween de `opacity`) que apaga los bordes; (3) el panel entra sobre el scrim. El "desenfoque de fondo" es un `backdrop-filter: blur(12px)` **estático** aplicado solo al elemento del panel (superficie chica = barato; si el navegador no lo soporta, el panel queda con fondo sólido casi-negro). No hay copia borrosa de la escena completa — el zoom + scrim + panel ya dan la profundidad, y blurear todo el frame anularía el zoom.
   - **Panel-picker:** fade-in (opacity + translateY 16px) tras el tween de cámara y el scrim. Miniaturas de los productos de la zona.
   - **Salir:** botón "volver" + tecla `Esc` revierten el tween de `viewBox` y ocultan el panel. El estado de zoom es **solo en página** — no crea entrada de historial, el botón "atrás" del navegador no interactúa con él.
@@ -101,12 +103,25 @@ Modelo mínimo para la demo (sin `precio`/`descripcion`: precios inventados conf
 - **Móvil / tablet-portrait** (`< 900px`): se renderiza una lista de 4 tarjetas (imagen de zona + nombre + nº de productos). Tap → scroll suave a la sección keynote de esa zona. Sin SVG, sin cámara. Tablet-landscape usa la vista desktop.
 - **Fallback sin JS:** los `<rect>` van envueltos en `<a xlink:href="#zona-id">`; el sitio navega a las secciones sin GSAP.
 
+**Las 3 rutas de la interacción del gymBox** (documentar con un comentario ASCII corto en `GymBox.astro`, son fáciles de dejar pudrir):
+
+```
+                       ┌─ prefers-reduced-motion? ─ SÍ → corte: viewBox salta + fade corto del panel
+click / Enter en zona ─┤
+   (JS activo)          └─ NO → tween AttrPlugin viewBox (0.8s) → scrim fade → panel fade-in
+sin JS ───────────────── <a href="#zona-id"> navega a la sección keynote (sin cámara, sin panel)
+```
+
+Las tres se cubren en tests E2E (ver "Tests").
+
 ### Motion (lenguaje Apple)
 
 - Curva por defecto: `power3.out` (cámara `power3.inOut`), duraciones 0.6-0.9s para cámara, 0.3-0.4s para UI.
 - **Las 4 secciones keynote se renderizan visibles por defecto.** ScrollTrigger solo *añade* una transición de entrada (fade + `translateY(40px→0)`, imagen con parallax leve `yPercent: -8`). Sin JS o con `prefers-reduced-motion`, se ven completas y estáticas — nunca una sección en blanco.
 - `prefers-reduced-motion`: desactiva parallax y el tween de cámara (el zoom se vuelve un corte con fade corto), deja fades de UI.
 - Presupuesto: se animan `transform` y `opacity` (compositor, baratos) y el atributo `viewBox` del SVG. **El tween de `viewBox` es paint-bound, no compositor-cheap** — es aceptable porque corre **solo en desktop** (móvil recibe la lista de tarjetas, sin SVG ni cámara) y sobre una sola escena. Se prototipa en la Pasada 1 en una máquina de gama media antes de comprometerlo. Nunca se anima `width`/`height`/`top`/`left`/`filter`.
+- **Imports de GSAP modulares** (tree-shakeable): `import gsap from "gsap"`, `import { ScrollTrigger } from "gsap/ScrollTrigger"`, `import { AttrPlugin } from "gsap/AttrPlugin"` — nunca el bundle completo (`gsap/all`). Total esperado ~42-52 KB gz.
+- **El gymBox NO se pinnea con ScrollTrigger.** La cámara se dispara por click, no por scroll; el usuario scrollea y pasa el hero normalmente. ScrollTrigger solo se usa para las entradas de las 4 secciones keynote.
 
 ### UI: nav, hero, secciones keynote, estados (revisión /plan-design-review)
 
@@ -137,8 +152,9 @@ Modelo mínimo para la demo (sin `precio`/`descripcion`: precios inventados conf
 
 ### Presupuesto de assets (la restricción que hace o rompe el objetivo de rendimiento)
 
-- **Ilustración del box:** AVIF con fallback WebP, ≤ 220 KB en su tamaño mayor. `srcset` responsive (1600w / 1200w / 800w). `<link rel="preload" as="image">` de la variante que corresponda. Placeholder LQIP (versión ~20px difuminada inline como data-URI) que se intercambia al cargar.
-- **Fotos de producto placeholder:** AVIF/WebP, ≤ 80 KB cada una, `loading="lazy"` salvo el primer héroe visible.
+- **Pipeline de imágenes = `astro:assets`.** No se hace a mano. `<Image>` / `<Picture>` de Astro generan AVIF+WebP, `srcset`, `width`/`height` (evita CLS) y LQIP en build. La ilustración del box es `<Image priority>` (equivale al preload). Las fotos de producto son `<Image loading="lazy">` salvo el primer héroe visible.
+- **Ilustración del box:** el master que se le pasa a `astro:assets` debe salir ≤ ~220 KB en AVIF a 1600w (Astro se encarga de las variantes menores). Objetivo LCP < 2.5s en 4G depende de esto.
+- **Fotos de producto placeholder:** master razonable, Astro las comprime; `loading="lazy"` salvo la primera visible.
 - **Tipografía display:** candidato **Anton** (Google Fonts, licencia OFL — self-hostable sin problema vía google-webfonts-helper; condensada, pesada, "gym"). Alternativa **Oswald** (OFL) si Anton es demasiado bloque. La textura grunge del lockup NO viene de la fuente — se usa el logo como imagen para el wordmark y, si se quiere grano en otros titulares, un overlay de textura SVG/PNG por CSS. Cuerpo: **Inter** (OFL). Ambas self-host WOFF2, `font-display: optional`, `<link rel="preload">` de la display. Sin llamadas a Google Fonts en runtime. Confirmar la elección final en `/plan-design-review`, pero la licencia ya está resuelta (OFL para las tres).
 - **JS:** Astro parte de ~0 JS; GSAP core + ScrollTrigger ≈ 40-50 KB gz. Es el único bundle.
 - Sin esta disciplina, un PNG naíf del héroe hace fallar `< 2.5s` y Lighthouse. El objetivo es alcanzable pero es *condicional* a esto.
@@ -148,6 +164,39 @@ Modelo mínimo para la demo (sin `precio`/`descripcion`: precios inventados conf
 - **Color:** fondo casi-negro azulado `#12172b` / `#1a2340`; texto `#F4F5F7`; un acento de energía (naranja señal `#FF5722` o similar) para CTAs y highlights de hotspot. Confirmar con José si la marca tiene un acento.
 - **Tipografía:** Anton (u Oswald) condensada para titulares + Inter para cuerpo. Contraste alto entre ambas = lenguaje keynote. El wordmark GuaguaFit es el logo (imagen), no texto.
 - **Layout:** mucho aire, un elemento protagonista por viewport, imágenes de producto sobre fondo limpio o el mismo casi-negro.
+
+## Tests (revisión /plan-eng-review — suíte E2E enfocada)
+
+Sin infra de tests hoy. Se añade en la Pasada 1, junto al código, no como follow-up.
+
+**Setup:** Playwright (`@playwright/test`), config con proyectos `desktop` (1280×800) y `mobile` (390×844). `npm test` corre contra `astro build && astro preview`.
+
+| # | Test | Tipo | Qué asegura |
+|---|---|---|---|
+| E1 | click en hotspot → panel aparece con los productos de esa zona; tween de cámara ocurre | E2E desktop | La interacción central funciona |
+| E2 | "Ver zona" en el panel → scroll a la sección keynote correcta (`#id`) | E2E desktop | El puente panel→keynote |
+| E3 | botón "volver" y tecla `Esc` → panel se cierra, `viewBox` vuelve al inicial, foco regresa al hotspot de origen | E2E desktop + a11y | Salir del zoom; foco no se pierde |
+| E4 | Tab llega a los 4 hotspots, `Enter`/`Space` abre el panel, foco entra al panel | E2E a11y | Navegable sin mouse |
+| E5 | `reducedMotion: 'reduce'` → al abrir zona no hay tween largo (corte), el panel igual aparece | E2E desktop | La ruta reduced-motion no se rompe |
+| E6 | `javaScriptEnabled: false` → los hotspots son `<a>` que navegan a `#id`; las 4 secciones keynote están visibles (no en blanco) | E2E | El fallback sin JS |
+| E7 | viewport móvil → renderiza 4 tarjetas de zona (no SVG); tap en tarjeta → scroll a `#id` | E2E mobile | La variante móvil |
+| E8 | scroll a la sección N → el link N de la nav queda activo (scroll-spy) | E2E desktop | Wayfinding |
+| B1 | `astro check` sin errores de tipo | build | Tipos |
+| B2 | `scripts/check-data.mjs`: cada `productos[].zona` ∈ `zonas[].id` y cada `zonas[].productos[]` ∈ `productos[].slug` | build (`prebuild`) | El acoplamiento de ids no se rompe silenciosamente |
+| V1 | snapshot Playwright del hero y de 1 sección keynote | visual | Regresión de layout |
+| L1 | Lighthouse móvil ≥ 90 en Performance, LCP < 2.5s — **check manual** antes de mandar el link a José (no CI para la demo) | métrica | El Success Criteria de rendimiento |
+
+**Modos de fallo por codepath:**
+
+| Codepath | Fallo realista en prod | ¿Test? | ¿Manejo? | ¿Usuario ve? |
+|---|---|---|---|---|
+| Tween de `viewBox` | AttrPlugin no interpola el string → salto brusco | E5 + prototipo Pasada 1 | corte de reduced-motion como red | salto feo (no roto) |
+| `backdrop-filter` panel | navegador sin soporte → panel translúcido ilegible | — | fondo sólido `#12172b` de fallback (en el plan) | panel opaco, legible |
+| id de zona desincronizado | link a `#id` inexistente → no pasa nada al click | B2 (build falla) | check de build | N/A (no llega a prod) |
+| Carga de la ilustración | asset falla/lento | — | LQIP de `astro:assets` + hotspots pre-posicionados | placeholder difuminado, layout estable |
+| ScrollTrigger sin JS | secciones nunca reciben la clase de entrada | E6 | secciones visibles por defecto (en el plan) | contenido completo, estático |
+
+Ningún modo de fallo es silencioso-y-sin-manejo. Sin gaps críticos.
 
 ## Open Questions
 
@@ -182,20 +231,21 @@ Modelo mínimo para la demo (sin `precio`/`descripcion`: precios inventados conf
 
 Total estimado: **~3-6 h de trabajo asistido (CC)** repartidas en dos pasadas.
 
-**Pasada 1 — demo mecánica (~2-3 h):**
-1. **Scaffold Astro + Tailwind + GSAP.** Página única, `zonas.json` (4 zonas) y `productos.json` (modelo mínimo `{slug, nombre, zona, imagen}`, ~3 productos por zona) con datos placeholder.
-2. **Nav sticky** con wordmark + 4 zonas + CTA WhatsApp + scroll-spy. (Es andamiaje del hero, va primero.)
-3. **GymBox desktop = hero:** placeholder SVG (4 `<rect>`), marcadores naranja siempre visibles, hero-copy con la instrucción, coreografía de cámara por tween de `viewBox` + scrim + panel-picker. Prototipar el tween de `viewBox` primero en una máquina de gama media. Que la interacción completa funcione antes de que exista una ilustración bonita.
-4. **Variante móvil** del GymBox (hero-copy + 4 tarjetas ≥88px + scroll a ancla).
-5. **4 secciones keynote** con el layout fijo (badge · texto+CTA izq · imagen der · 4 puntos), ScrollTrigger (visibles por defecto, entrada aditiva), placeholders. Grilla de productos restantes debajo.
-6. **Habilitar deploy** (`gh repo create` + Vercel) y publicar — así José ve el progreso mecánico desde el primer día.
+**Pasada 1 — demo mecánica + tests (~2.5-3.5 h):**
+1. **Scaffold Astro + Tailwind + GSAP (imports modulares) + Playwright.** Página única, `zonas.json` (4 zonas) y `productos.json` con datos placeholder. `scripts/check-data.mjs` en `prebuild` (valida ids). `astro check` en el pipeline.
+2. **Nav sticky** con wordmark + 4 zonas + CTA WhatsApp + scroll-spy. (Andamiaje del hero, va primero.) → test E8.
+3. **GymBox desktop = hero:** placeholder SVG (4 `<rect>`), marcadores naranja siempre visibles, hero-copy con la instrucción, cámara por `AttrPlugin` sobre `viewBox` + scrim + panel-picker. **Prototipar el tween de `viewBox` primero** y confirmar la interpolación del string. → tests E1-E5.
+4. **Variante móvil** del GymBox (hero-copy + 4 tarjetas ≥88px + scroll a ancla). → test E7.
+5. **4 secciones keynote** con el layout fijo (badge · texto+CTA izq · imagen `<Image>` der · 4 puntos), ScrollTrigger (visibles por defecto, entrada aditiva), placeholders. Grilla de productos restantes debajo. → test E6 (sin-JS).
+6. **Suíte E2E** (E1-E8, B1-B2, V1) verde antes del deploy.
+7. **Habilitar deploy** (`gh repo create` + Vercel) y publicar.
 
 **Pasada 2 — pulido a nivel Success Criteria (~1-3 h):**
-7. **Confirmar identidad visual** con `/design-consultation` (color de acento real de la marca vs el naranja `#FF5722` asumido, confirmar Anton vs Oswald, tratamiento de imagen).
-8. **Iterar la ilustración del box** — reservar ~30-45 min solo para generar/seleccionar la escena (es el 100% del "wow"; resolver antes la Open Question 3: IA vs foto del local). Sustituir el placeholder; las coordenadas de hotspot viven en `zonas.json`, no hay que tocar código.
-9. **Disciplina de assets:** AVIF/WebP + `srcset` + preload + LQIP; self-host de fuentes.
-10. **Accesibilidad y robustez:** foco/ARIA en hotspots y nav, `Esc` para salir, `prefers-reduced-motion`, verificar fallback sin JS, targets táctiles ≥44px.
-11. **Medir:** Lighthouse móvil, prueba en 4G real, mandar link final a José.
+8. **Confirmar identidad visual** con `/design-consultation` (color de acento real de la marca vs el naranja `#FF5722` asumido, confirmar Anton vs Oswald, tratamiento de imagen).
+9. **Iterar la ilustración del box** — reservar ~30-45 min solo para generar/seleccionar la escena (es el 100% del "wow"; resolver antes la Open Question 3: IA vs foto del local). Sustituir el placeholder pasándoselo a `<Image>`; las coordenadas de hotspot viven en `zonas.json`.
+10. **Assets y fuentes:** master de la ilustración ≤~220 KB AVIF@1600w para que `astro:assets` cumpla LCP; self-host de Anton + Inter (WOFF2, `font-display: optional`).
+11. **Accesibilidad y robustez:** foco/ARIA en hotspots y nav, targets táctiles ≥44px, re-correr E3/E4/E5/E6.
+12. **Medir (L1):** Lighthouse móvil ≥90, prueba en 4G real, mandar link final a José.
 
 ## What I noticed about how you think
 
@@ -219,13 +269,16 @@ Fuente editable del wireframe: `scratchpad/wireframe.html` de la sesión (esquem
 - **Modo claro / theming** — la demo es dark-only a propósito (lenguaje keynote).
 - **i18n / inglés** — español-only para la demo.
 - **Animación de transición entre secciones keynote** (tipo "carrusel horizontal") — se evaluó; para la demo, scroll vertical simple con los 4 puntos como indicador es suficiente.
+- **Content Collections de Astro (schema Zod)** — JSON planos alcanzan para 4 zonas; upgrade natural para v2 si el catálogo crece.
+- **Lighthouse CI** — para la demo, un check manual de Lighthouse (L1) antes de mandar el link. CI se justifica cuando esto sea producción.
+- **Snapshots visuales exhaustivos** — solo V1 (hero + 1 keynote). Cobertura visual completa es de v2.
 
 ## What already exists
 
 Repo nuevo. Único activo reutilizable: el logo (`LOGO JOSE NEGRO PNG.png` — cabeza de animal; `LETRAS GUAGUA FIT 2.png` — wordmark con textura grunge). No hay DESIGN.md, ni componentes, ni patrones previos.
 
 ## Implementation Tasks
-Sintetizado de los hallazgos de `/plan-design-review`. Cada tarea deriva de un hallazgo concreto.
+Sintetizado de `/plan-design-review` (F1-F4) y `/plan-eng-review` (T6-T10). Cada tarea deriva de un hallazgo concreto.
 
 - [ ] **T1 (P1, human: ~1.5h / CC: ~15min)** — nav — Nav sticky con wordmark, 4 zonas, CTA WhatsApp y scroll-spy
   - Surfaced by: F3 wayfinding — página única sin nav persistente, no se puede volver al box desde una sección
@@ -247,6 +300,26 @@ Sintetizado de los hallazgos de `/plan-design-review`. Cada tarea deriva de un h
   - Surfaced by: F4 — naranja sobre casi-negro borderline para cuerpo; tarjetas móviles sin tamaño
   - Files: `tailwind.config`, `src/components/ZonaCard.astro`
   - Verify: cuerpo siempre `#F4F5F7`; tarjetas móviles ≥44px de alto de target; naranja solo en UI/titulares grandes
+- [ ] **T6 (P1, human: ~1h / CC: ~20min)** — tests — Suíte E2E enfocada (Playwright) E1-E8 + B1-B2 + V1
+  - Surfaced by: Test review — el plan no tenía estrategia de tests; 12 codepaths sin cubrir
+  - Files: `playwright.config.ts`, `tests/gymbox.spec.ts`, `tests/mobile.spec.ts`, `tests/nojs.spec.ts`
+  - Verify: `npm test` verde contra `astro preview`
+- [ ] **T7 (P2, human: ~30min / CC: ~5min)** — data — `scripts/check-data.mjs` en `prebuild` valida ids de zona
+  - Surfaced by: A3 — el `id` de zona lo consumen 5 lugares; desincronía = link muerto silencioso
+  - Files: `scripts/check-data.mjs`, `package.json` (`prebuild`)
+  - Verify: romper un `zona` en `productos.json` → `npm run build` falla con mensaje claro
+- [ ] **T8 (P2, human: ~45min / CC: ~10min)** — assets — Pipeline de imágenes vía `astro:assets` (`<Image>`/`<Picture>`)
+  - Surfaced by: A1 — el plan reimplementaba a mano lo que `astro:assets` hace en build
+  - Files: `src/components/GymBox.astro`, `src/components/ZonaKeynote.astro`, `src/components/ZonaCard.astro`
+  - Verify: build emite AVIF+WebP+srcset+dimensiones; sin CLS en Lighthouse
+- [ ] **T9 (P2, human: ~20min / CC: ~5min)** — gymbox — Cámara vía `AttrPlugin`, imports GSAP modulares, gymBox sin pin
+  - Surfaced by: A2 + P1 — `gsap.core` no anima atributos; evitar el bundle `gsap/all`
+  - Files: `src/scripts/gymbox.ts`
+  - Verify: bundle GSAP ≤ ~52 KB gz; el prototipo confirma la interpolación del string `viewBox`
+- [ ] **T10 (P3, human: ~10min / CC: ~3min)** — gymbox — Comentario ASCII de las 3 rutas de interacción en `GymBox.astro`
+  - Surfaced by: Q1 — 3 codepaths (normal / reduced-motion / sin-JS) fáciles de dejar pudrir
+  - Files: `src/components/GymBox.astro`
+  - Verify: el comentario refleja las 3 ramas y coincide con los tests E5/E6
 
 ## GSTACK REVIEW REPORT
 
