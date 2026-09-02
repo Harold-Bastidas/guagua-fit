@@ -22,10 +22,11 @@ El "wow" para José: **abre el link en su celular**, ve el box, toca una zona, y
 
 ## Constraints
 
-- **Solo existe el logo.** Logo tipo cabeza de animal agresiva (`LOGO JOSE NEGRO PNG.png`) + lockup tipográfico "GUAGUA FIT" con textura grunge, en azul marino muy oscuro (~`#1a2340`). Todo lo demás (escena del box, fotos de producto, listado, precios) es placeholder por ahora.
+- **Solo existe el logo.** Logo = **el cráneo de un cuy** (*Cavia porcellus*, conejillo de indias) estilizado y agresivo (`LOGO JOSE NEGRO PNG.png`) + lockup "GUAGUA FIT" con textura grunge. Todo lo demás (escena del box, fotos de producto, listado, precios) es placeholder por ahora.
+- **Paleta confirmada por José: negro, crema y blanco.** Sin color de acento cromático. El "punch" lo da el contraste (blanco puro para CTAs y estados activos); la crema es el tono ambiente cálido. Estética editorial premium, encaja bien con "keynote de Apple".
 - **Demo, no producción.** Prioridad: que se vea y se sienta el concepto. No robustez, no SEO perfecto, no CMS.
 - **Rendimiento móvil es innegociable.** José la va a abrir en su teléfono. Si tarda o va a tirones, la demo fracasa en el peor momento.
-- **Cero backend.** Sitio 100% estático. CTA de producto = botón a WhatsApp / "dónde comprar" (asumido, pendiente de confirmar con José — ver "Preguntas para José").
+- **Cero backend.** Sitio 100% estático. CTA de producto = botón a WhatsApp / "dónde comprar" (asumido, pendiente de confirmar con José — ver "Decisiones de José").
 - **Público final:** personas que entrenan crossfit (compran barras, discos, kettlebells, anillas, cuerdas, cajones, remos, ropa, accesorios).
 
 ## Premises
@@ -35,7 +36,7 @@ El "wow" para José: **abre el link en su celular**, ve el box, toca una zona, y
 1. **Vertical slice.** La demo se construye con **UNA zona completa y real** (Levantamiento — barras y discos): ilustración real de esa esquina del box, motion afinado, copy real, imágenes reales. Las otras 3 zonas (Kettlebells, Gimnásticos, Cardio) existen como hotspots visibles en la escena pero muestran "Pronto" al tocarlas. Si José aprueba el concepto con el slice, se expanden rápido. Cuatro zonas al 40% convencen menos que una al 100%.
 2. **El gymBox = escena 2D ilustrada a pantalla completa con hotspots.** Tocar una zona hace un **zoom por `transform`** (scale+translate sobre un wrapper) + panel con los productos. Sin 3D, sin WebGL. **La misma técnica corre en móvil y desktop** (móvil no es una vista degradada — es cámara-lite: el mismo zoom con menos coreografía).
 3. **El objetivo #1 es la aprobación de José, que la va a abrir desde su teléfono.** Por eso el gymBox tiene que funcionar y sentirse bien en móvil, no solo en desktop.
-4. **Antes de escribir código se le mandan a José las 5 preguntas** (color de acento, animal del logo, IA vs foto del local, CTA final, idioma). Varias cambian el build y cuestan un WhatsApp.
+4. **Las 5 preguntas a José están respondidas** (ver "Decisiones de José"): paleta negro/crema/blanco, logo = cráneo de cuy, ilustración por IA, CTA WhatsApp, español-only. Falta solo verificar el formato del número.
 5. **Se despliega en Vercel con URL pública** para que José la abra desde el teléfono.
 
 Confirmadas por el usuario en la revisión.
@@ -67,7 +68,7 @@ Ilustración isométrica del box; cada zona es un plano en un espacio con `persp
   ├─ Hero = GymBox interactivo (ocupa el primer viewport, móvil + desktop)
   │    escena ilustrada a pantalla completa
   │    hero-copy sobre la escena: "ENTRÁ AL BOX" + "Tocá una zona para ver qué hay"
-  │    4 hotspots con marcador naranja SIEMPRE visible
+  │    4 hotspots con marcador crema SIEMPRE visible
   │      · Levantamiento → zoom + panel + "Ver zona"
   │      · Kettlebells / Gimnásticos / Cardio → tap muestra "Pronto" (no navegan)
   │    scroll-cue abajo-centro
@@ -99,9 +100,9 @@ Para el slice: `zonas.json` tiene las 4 zonas pero solo Levantamiento con `activ
 
 **Estructura (móvil + desktop, misma):** un contenedor `.escena` con la ilustración del box como `<Image>` de fondo (`object-fit: cover`) y los hotspots como `<button>` posicionados en % sobre ella (`position: absolute; left: 62%; top: 30%`). Sin SVG — evita el AttrPlugin, el fallback `xlink`, y los quirks de foco/ARIA del SVG. Un `.camara` (wrapper que envuelve escena + hotspots) es lo que se anima.
 
-- **Affordance (siempre visible, no depende de hover):** cada hotspot `<button>` = círculo Ø34-44 con borde naranja `#FF5722` + "+" + etiqueta corta en mayúsculas sobre fondo `rgba(18,23,43,.85)`. Pulso sutil al cargar (`scale`/`opacity`, 1 ciclo, off con `prefers-reduced-motion`). Hover/focus solo aumenta el énfasis. Hero-copy con la instrucción: **"Tocá una zona para ver qué hay."** Target táctil ≥44px en móvil.
+- **Affordance (siempre visible, no depende de hover):** cada hotspot `<button>` = anillo `--crema` Ø34-44 + "+" + etiqueta corta en mayúsculas sobre pastilla `rgba(17,17,16,.82)`. Pulso sutil al cargar (`scale`/`opacity`, 1 ciclo, off con `prefers-reduced-motion`). Hover/focus → relleno sólido crema + "+" negro + glow cálido. Hero-copy con la instrucción: **"Tocá una zona para ver qué hay."** Target táctil ≥44px en móvil.
 - **Zoom (cámara por `transform`, GSAP nativo, sin AttrPlugin):** al tocar un hotspot, `gsap.to(".camara", { scale: 2.2, x: <dx>, y: <dy>, transformOrigin: "<hotspot center %>", duration: 0.7, ease: "power3.inOut" })`. `dx/dy` centran el hotspot en el viewport. Compositor-cheap (solo `transform`). **Móvil = cámara-lite:** mismo tween, `scale: 1.8`, duración 0.5s, sin el paneo largo — el mismo lenguaje, menos coreografía.
-- **Foco visual:** (1) tween de `transform` de la cámara; (2) fade-in de un scrim oscuro (`div` a pantalla completa, `opacity`); (3) panel entra sobre el scrim. El panel lleva `backdrop-filter: blur(12px)` estático (superficie chica); fallback = fondo sólido `#12172b`.
+- **Foco visual:** (1) tween de `transform` de la cámara; (2) fade-in de un scrim (`div` a pantalla completa, `opacity`, `--negro-scrim`); (3) panel entra sobre el scrim. El panel lleva `backdrop-filter: blur(12px)` estático (superficie chica); fallback = fondo sólido `--negro`.
 - **Panel-picker:** fade-in (`opacity` + `translateY 16px`) tras la cámara. Miniaturas (`<Image>`) de los productos de la zona. Solo Levantamiento tiene productos reales; las otras 3 muestran un panel "Pronto" corto.
 - **Salir:** botón "volver" + `Esc` revierten el tween de la cámara y ocultan panel+scrim. Estado solo en página, no toca el historial.
 - **Accesibilidad:** hotspots son `<button>` nativos (focuseables, Enter/Space gratis), `aria-label="Zona: {nombre}"`. Al abrir el panel, foco al primer elemento; al cerrar, vuelve al hotspot de origen. Panel con `role="dialog"` + `aria-modal`, trap de foco mientras está abierto.
@@ -132,10 +133,10 @@ sin JS ───────────────── <a href="#levantamien
 **Hero = el GymBox** (no son dos pantallas). Presupuesto de hero landing: marca (wordmark en nav) + 1 titular ("ENTRÁ AL BOX") + 1 frase con la instrucción ("Tocá una zona para ver qué hay") + 1 grupo CTA (los hotspots son el CTA principal; el WhatsApp de la nav el secundario) + 1 imagen (la escena). Hero-copy a la izquierda sobre la escena, hotspots hacia el centro/derecha, scroll-cue abajo-centro. Sin cards.
 
 **Sección keynote `#levantamiento`, layout fijo:**
-- Badge de zona arriba-izquierda (`ZONA · LEVANTAMIENTO`, naranja, mayúsculas).
-- Columna de texto a la izquierda: título grande (2-4 palabras) + 1 frase + botón "Consultar por WhatsApp" (borde naranja). Cuerpo en `#F4F5F7`, **nunca naranja**.
+- Badge de zona arriba-izquierda (`ZONA · LEVANTAMIENTO`, `--crema`, mayúsculas, letter-spaced).
+- Columna de texto a la izquierda: título grande (2-4 palabras) + 1 frase + botón "Consultar por WhatsApp" (**relleno `--blanco`, texto `--negro`**). Cuerpo en `--crema`.
 - Imagen del producto héroe a la derecha (`<Image>`).
-- Indicador de posición abajo-derecha: 4 puntos (1 activo naranja) — anticipa las 4 zonas aunque solo 1 esté viva.
+- Indicador de posición abajo-derecha: 4 puntos (`--crema` 30%, activo `--blanco` sólido) — anticipa las 4 zonas aunque solo 1 esté viva.
 - Debajo del héroe, sin pin: ~5 productos de la zona en grilla simple (imagen + nombre), cada uno enlaza a WhatsApp con mensaje pre-rellenado.
 - Una sola función: presentar la zona Levantamiento.
 
@@ -143,14 +144,14 @@ sin JS ───────────────── <a href="#levantamien
 
 | Momento | Qué ve el usuario |
 |---|---|
-| Carga de la escena del box | Fondo `#12172b` + wordmark + los 4 marcadores ya posicionados (`left/top` en `zonas.json`) + LQIP de `astro:assets`. El layout no salta al entrar la imagen. |
+| Carga de la escena del box | Fondo `--negro` + wordmark + los 4 marcadores ya posicionados (`left/top` en `zonas.json`) + LQIP de `astro:assets`. El layout no salta al entrar la imagen. |
 | Carga móvil | Hero-copy (texto) pinta primero; la escena entra con LQIP. |
 | Tap en Kettlebells / Gimnásticos / Cardio | Panel corto "Pronto — esta zona llega enseguida" + botón volver. No navega, no rompe. Deja claro que hay más. |
 | Panel-picker abierto | "volver · Esc" visible arriba-derecha; scrim oscuro detrás; nav sigue accesible; foco atrapado en el panel (`role="dialog"`). |
 | Sin JS | Nav = anclas normales; hotspots renderizados como `<a href="#levantamiento">`; sección keynote visible y estática. Navegable. |
 | Error | No hay estado de error real: sitio estático, sin red en runtime salvo assets (degradan con LQIP). |
 
-**Contraste:** `#FF5722` sobre `#12172b` ≈ 5.7:1 — cumple AA para texto grande, bordes de botón y marcadores UI. No usar naranja para texto de cuerpo. Texto de cuerpo siempre `#F4F5F7` sobre `#12172b` (≈ 15:1).
+**Contraste:** `--crema` `#EFE7D6` sobre `--negro` `#111110` ≈ 15:1. `--blanco` sobre `--negro` ≈ 19:1. Texto sobre CTA blanco = `--negro` (≈ 19:1). Todo cumple AAA. La pastilla `rgba(17,17,16,.82)` detrás de las etiquetas de hotspot garantiza el contraste incluso sobre las zonas claras de la ilustración.
 
 ### Presupuesto de assets (la restricción que hace o rompe el objetivo de rendimiento)
 
@@ -162,11 +163,22 @@ sin JS ───────────────── <a href="#levantamien
 - Sin esta disciplina, un PNG naíf del héroe hace fallar `< 2.5s` y Lighthouse.
 - **Plan B si Lighthouse (L1) vuelve < 90:** bajar peso del master de la ilustración, `loading="lazy"` en más imágenes, o entregar igual con una nota a José ("va a afinar en producción"). El envío a José NO se bloquea en un número — 78 con la demo funcionando le sirve para aprobar el concepto.
 
-### Identidad visual (punto de partida, a validar con /plan-design-review)
+### Identidad visual (paleta confirmada; tipografía a validar con /design-consultation)
 
-- **Color:** fondo casi-negro azulado `#12172b` / `#1a2340`; texto `#F4F5F7`; un acento de energía (naranja señal `#FF5722` o similar) para CTAs y highlights de hotspot. Confirmar con José si la marca tiene un acento.
-- **Tipografía:** Anton (u Oswald) condensada para titulares + Inter para cuerpo. Contraste alto entre ambas = lenguaje keynote. El wordmark GuaguaFit es el logo (imagen), no texto.
-- **Layout:** mucho aire, un elemento protagonista por viewport, imágenes de producto sobre fondo limpio o el mismo casi-negro.
+**Tokens de color (CSS variables):**
+
+| Token | Hex | Uso |
+|---|---|---|
+| `--negro` | `#111110` | fondo dominante (cálido, no puro, para sentar con la crema) |
+| `--crema` | `#EFE7D6` | texto sobre negro (≈15:1), marcadores de hotspot, badges, tono ambiente |
+| `--blanco` | `#FFFFFF` | "punch": relleno de CTA primario, estado activo, detalles de máximo contraste |
+| `--negro-scrim` | `rgba(10,10,9,.72)` | scrim del zoom |
+
+- Sin acento cromático (naranja/azul). El contraste hace el trabajo: **CTA primario = relleno `--blanco` + texto `--negro`**, sin adornos. Links secundarios (grilla de productos) = subrayado crema.
+- **Hotspot:** anillo `--crema` (Ø34-44) + "+" + etiqueta en mayúsculas sobre pastilla `rgba(17,17,16,.82)` (legible sobre una ilustración cargada). Hover/focus → relleno sólido crema, "+" en negro, glow cálido sutil (`box-shadow` crema baja alpha).
+- **Tipografía:** propuesta **Anton** (u Oswald) condensada para titulares + **Inter** cuerpo (todas OFL). Contraste alto entre ambas = lenguaje keynote. El wordmark es el logo (imagen), no la fuente. `/design-consultation` confirma la elección final.
+- **Layout:** mucho aire, un elemento protagonista por viewport, imágenes de producto sobre negro o crema limpios.
+- **El cráneo de cuy** puede aparecer como motivo sutil en la ilustración del box (grabado en una pared, placa) o como marca de agua en secciones — no como decoración recargada.
 
 ## Tests (revisión /plan-eng-review — calibrado a "demo desechable")
 
@@ -198,24 +210,22 @@ El slice es un artefacto que se tira cuando se scopea el sitio real. La suíte c
 | Codepath | Fallo realista | ¿Manejo? | ¿Usuario ve? |
 |---|---|---|---|
 | Tween `transform` cámara | jank en móvil viejo | `reduced-motion` = corte; `transform` es compositor-cheap | zoom con algún tirón, no roto |
-| `backdrop-filter` panel | sin soporte → ilegible | fondo sólido `#12172b` de fallback | panel opaco, legible |
+| `backdrop-filter` panel | sin soporte → ilegible | fondo sólido `--negro` de fallback | panel opaco, legible |
 | id de zona desincronizado | link a `#id` inexistente | `check-data.mjs` falla el build | N/A (no llega a prod) |
 | Carga de la ilustración | asset lento/falla | LQIP de `astro:assets` + hotspots pre-posicionados | placeholder difuminado, layout estable |
 | ScrollTrigger sin JS | sección sin clase de entrada | visible por defecto | contenido completo, estático |
 
 Ningún modo de fallo es silencioso-y-sin-manejo. Sin gaps críticos.
 
-## Preguntas para José — MANDAR ANTES DE CONSTRUIR
+## Decisiones de José (confirmadas 2026-09-02)
 
-Son un WhatsApp y cambian el build. No arrancar el código hasta tener respuesta (o asumir explícitamente).
+1. **Paleta:** negro, crema, blanco. Sin acento cromático. → tokens en "Identidad visual".
+2. **Logo:** el cráneo de un **cuy** (*Cavia porcellus*). El motivo puede aparecer sutil en la ilustración; el copy puede tener un guiño (sin forzarlo).
+3. **Escena del box: generada por IA.** Confirmado. Ítem más caro del slice (~1-2 h de generación + ajuste).
+4. **CTA: WhatsApp.** José pasó un número (guardado fuera del plan; va en `src/data/site.json`, que se publica con el sitio). ⚠️ Verificar formato — un móvil de Colombia son 10 dígitos (`3XX XXX XXXX`) y el dado tiene 11; el link es `https://wa.me/57<10 dígitos>?text=<mensaje>`. Confirmar el número exacto con José antes del deploy.
+5. **Idioma:** español-only.
 
-1. **¿La marca tiene color de acento?** El logo es monocromo azul marino. Se asume naranja `#FF5722`; si hay otro, cambia `tailwind.config` y los marcadores.
-2. **¿"Guagua" es un animal concreto?** El logo parece cabeza de roedor/paca. Afecta el tono de la ilustración y el copy.
-3. **¿La escena del box: la generamos por IA o José tiene fotos de su local?** Es la decisión que más cambia el trabajo (ilustración estilizada vs foto tratada) y el ítem más caro.
-4. **¿El CTA es WhatsApp, formulario, o "visítanos"?** Se asume WhatsApp; hace falta el número y el mensaje pre-rellenado. Cambia la sección keynote y la grilla.
-5. **¿Idioma: solo español, o + inglés?** Se asume español-only.
-
-**Dueño del copy:** los titulares, la frase de la zona Levantamiento y los ~5 nombres de producto los escribe **[definir: vos o José]**. Nombres inventados tienen el mismo problema que precios inventados — confunden a José sobre qué aprueba. Si los escribís vos, marcarlos como placeholder al presentar.
+**Dueño del copy:** los titulares, la frase de la zona Levantamiento y los ~5 nombres de producto los escribe **[definir: vos o José]**. Nombres inventados confunden a José sobre qué aprueba — si los escribís vos, marcarlos como placeholder al presentar.
 
 ## Success Criteria
 
@@ -235,26 +245,25 @@ Son un WhatsApp y cambian el build. No arrancar el código hasta tener respuesta
 
 ## Dependencies
 
-- **La ilustración de la zona Levantamiento** es el bloqueante duro. Depende de la respuesta de José a la pregunta 3 (IA vs foto). Se puede arrancar todo lo demás con un placeholder (rectángulo con la zona marcada) y sustituir sin tocar código.
-- Copy de la zona Levantamiento (~5 nombres de producto + 1 titular + 1 frase) — dueño por definir.
-- Respuestas de José a las 5 preguntas, o supuestos explícitos.
+- **La ilustración de la zona Levantamiento** (por IA, confirmado) es el bloqueante duro. Se puede arrancar todo lo demás con un placeholder (rectángulo con la zona marcada) y sustituir sin tocar código.
+- Copy de la zona Levantamiento (~5 nombres de producto + 1 titular + 1 frase) — **dueño por definir** (vos o José).
+- Verificar el número de WhatsApp con José (formato — ver "Decisiones de José").
 - Cuenta de Vercel (paso de usuario en web).
 
 ## Next Steps
 
 Total estimado del slice: **~3-5 h (CC)**, la mitad en la ilustración. Expandir a las otras 3 zonas post-aprobación: ~1-2 h.
 
-**Paso 0 — antes de tocar código (~5 min de Harold):**
-0. Mandarle a José las 5 preguntas por WhatsApp. Fijar dueño del copy. Si no hay respuesta rápida, anotar los supuestos y seguir.
+**Paso 0 — HECHO:** las 5 preguntas están respondidas (ver "Decisiones de José"). Pendiente: fijar dueño del copy y confirmar el número de WhatsApp exacto.
 
 **Slice — 1 zona completa (~3-5 h):**
 1. **Scaffold** Astro + Tailwind + GSAP (`gsap` + `ScrollTrigger`, modular) + Playwright. `zonas.json` (4 zonas, solo Levantamiento `activa`) + `productos.json` (~5 de Levantamiento). `scripts/check-data.mjs` en `prebuild`. `astro check`.
 2. **Habilitar deploy** (`gh repo create` + Vercel) YA — publicar el esqueleto para iterar con José desde el día 1.
 3. **Nav sticky** (wordmark + Levantamiento + WhatsApp). Scroll-spy trivial con 1 zona.
-4. **GymBox = hero** (móvil + desktop, misma técnica): escena con placeholder, hotspots `<button>` con marcador naranja siempre visible, hero-copy con la instrucción, **cámara por `transform` sobre `.camara`** + scrim + panel. **Prototipar el zoom primero en un móvil de gama media.** Levantamiento abre panel real; las otras 3 → "Pronto". → smoke S1, S2.
+4. **GymBox = hero** (móvil + desktop, misma técnica): escena con placeholder, hotspots `<button>` con marcador crema siempre visible, hero-copy con la instrucción, **cámara por `transform` sobre `.camara`** + scrim + panel. **Prototipar el zoom primero en un móvil de gama media.** Levantamiento abre panel real; las otras 3 → "Pronto". → smoke S1, S2.
 5. **Sección keynote `#levantamiento`**: layout fijo (badge · título+frase+CTA izq · `<Image>` der · 4 puntos) + grilla de ~5 productos. ScrollTrigger visible por defecto.
-6. **Ilustración real de la zona Levantamiento** (IA o foto según José). Este es el ítem caro (~1-2 h): generar/seleccionar, ajustar para que el hotspot caiga limpio, pasar por `<Image>`. Master ≤ ~220 KB AVIF@1600w.
-7. **Assets/fuentes:** self-host Anton + Inter (WOFF2, `font-display: swap` + preload).
+6. **Ilustración real de la zona Levantamiento por IA.** Ítem caro (~1-2 h): iterar el prompt (interior de box crossfit, esquina de levantamiento, paleta negro/crema/blanco, opcional el motivo del cráneo de cuy grabado en la pared), seleccionar, ajustar para que el hotspot caiga limpio, pasar por `<Image>`. Master ≤ ~220 KB AVIF@1600w.
+7. **Assets/fuentes:** self-host Anton + Inter (WOFF2, `font-display: swap` + preload). Tokens `--negro/--crema/--blanco` en `tailwind.config`.
 8. **A11y + robustez:** foco/ARIA/trap en el panel, targets ≥44px, checklist manual completo.
 9. **Medir (L1) + entregar:** Lighthouse móvil (Plan B si < 90), prueba en 4G real, link a José con nota de qué es placeholder.
 
@@ -282,7 +291,7 @@ Fuente editable del wireframe: `scratchpad/wireframe.html` de la sesión (esquem
 
 - **Las otras 3 zonas completas (Kettlebells, Gimnásticos, Cardio)** — existen como hotspots "Pronto" en el slice; se construyen solo si José aprueba el concepto (paso 10).
 - **Sección "Sobre GuaguaFit" y footer completos** — versión mínima (2 frases / links) en el slice; se completan post-aprobación.
-- **Sistema de diseño (DESIGN.md)** — se asume `#12172b`/`#F4F5F7`/`#FF5722` + Anton/Inter; `/design-consultation` lo confirma después del slice.
+- **Sistema de diseño (DESIGN.md)** — negro/crema/blanco confirmado; Anton/Inter propuesto; `/design-consultation` lo confirma después del slice.
 - **Páginas de detalle de producto, carrito, checkout** — v2, solo si José aprueba vender online.
 - **Modo claro / theming** — dark-only a propósito (lenguaje keynote).
 - **i18n / inglés** — español-only.
@@ -293,14 +302,14 @@ Fuente editable del wireframe: `scratchpad/wireframe.html` de la sesión (esquem
 
 ## What already exists
 
-Repo nuevo. Único activo reutilizable: el logo (`LOGO JOSE NEGRO PNG.png` — cabeza de animal; `LETRAS GUAGUA FIT 2.png` — wordmark con textura grunge). No hay DESIGN.md, ni componentes, ni patrones previos.
+Repo nuevo. Único activo reutilizable: el logo (`LOGO JOSE NEGRO PNG.png` — cráneo de cuy; `LETRAS GUAGUA FIT 2.png` — wordmark con textura grunge). Hay también `LOGO JOSE B BLANCO.png` / `LOGO JOSE BLANCO PNG.png` (versiones claras — útiles sobre negro). No hay DESIGN.md, ni componentes, ni patrones previos.
 
 ## Implementation Tasks
 Sintetizado de `/office-hours`, `/plan-design-review` (F1-F4), `/plan-eng-review` (A1-A3, P1, Q1) y la voz externa (giro a vertical slice). Orden = orden de build.
 
-- [ ] **T0 (P1, human: ~5min)** — proceso — Mandar a José las 5 preguntas; fijar dueño del copy
+- [x] **T0 (P1, human: ~5min)** — proceso — Preguntas a José respondidas (paleta, logo, IA, WhatsApp, idioma)
   - Surfaced by: Voz externa #4 — "no hay paso 'preguntarle a José' antes de construir"
-  - Verify: respuestas o supuestos explícitos anotados en el plan antes de T1
+  - Pendiente: fijar dueño del copy; confirmar el número de WhatsApp exacto con José
 - [ ] **T1 (P1, human: ~30min / CC: ~15min)** — scaffold — Astro + Tailwind + GSAP modular + Playwright + `check-data.mjs`
   - Surfaced by: A3 (check de ids), P1 (imports modulares)
   - Files: `astro.config.mjs`, `tailwind.config`, `scripts/check-data.mjs`, `package.json`, `src/data/*.json`
@@ -335,7 +344,7 @@ Sintetizado de `/office-hours`, `/plan-design-review` (F1-F4), `/plan-eng-review
 - [ ] **T9 (P2, human: ~30min)** — a11y — Trap de foco en el panel, `role="dialog"`, targets ≥44px, contraste
   - Surfaced by: F4 + A2 (panel modal)
   - Files: `src/scripts/gymbox.ts`, `tailwind.config`
-  - Verify: foco atrapado mientras el panel está abierto; cuerpo siempre `#F4F5F7`
+  - Verify: foco atrapado mientras el panel está abierto; cuerpo siempre `--crema`
 - [ ] **T10 (P2, human: ~20min)** — medir — Lighthouse móvil + prueba 4G real + entregar a José
   - Surfaced by: Success Criteria + voz externa #7 (Plan B)
   - Verify: número anotado; si < 90 aplicar Plan B, no bloquear; link a José con nota de placeholders
@@ -352,6 +361,7 @@ Sintetizado de `/office-hours`, `/plan-design-review` (F1-F4), `/plan-eng-review
 
 - **CROSS-MODEL:** voz externa (subagente Claude, mismo modelo — Codex no instalado) desafió el plan post-review. 4 tensiones aceptadas por el usuario: (1) móvil — cámara-lite en vez de vista degradada; (2) técnica de cámara — `transform` en vez de `viewBox`/AttrPlugin; (3) forma — **vertical slice de 1 zona** en vez de esqueleto de 4; (4) tests — 2 smoke + checklist manual en vez de suíte completa. También: preguntar a José las 5 preguntas ANTES de construir, `font-display: swap`, dueño del copy, Plan B de Lighthouse.
 - Antes: 2 rondas de revisión adversaria en `/office-hours` (20 issues, 8/10).
-- **VERDICT:** DESIGN + ENG addressed. El plan se reescribió a vertical slice. Listo para implementar (T0 = mandar preguntas a José).
+- **DECISIONES DE JOSÉ (2026-09-02):** paleta negro/crema/blanco (sin acento cromático) · logo = cráneo de cuy · ilustración por IA · CTA WhatsApp (número aparte, verificar formato) · español-only. Aplicadas al plan.
+- **VERDICT:** DESIGN + ENG addressed. Plan reescrito a vertical slice, decisiones de cliente integradas. Listo para T1 (scaffold).
 
 NO UNRESOLVED DECISIONS
