@@ -1,0 +1,148 @@
+---
+import { Image } from "astro:assets";
+import site from "../data/site.json";
+import { waLink } from "../lib/format";
+import wordmark from "../assets/logo-guaguafit.png";
+
+// Nav sticky: wordmark izq · "Grips y Muñequeras" (ancla a #grips) · botón WhatsApp der.
+// Scroll-spy trivial con 1 zona: resalta el enlace cuando #grips está en viewport.
+const waHref = waLink(site.whatsapp, site.waMsg, "GuaguaFit");
+---
+
+<header class="nav">
+  <a class="nav__brand" href="#top" aria-label="GuaguaFit — inicio">
+    <Image
+      src={wordmark}
+      alt="GuaguaFit"
+      width={40}
+      height={40}
+      loading="eager"
+      class="nav__logo"
+    />
+    <span class="nav__wordmark">GUAGUA<strong>FIT</strong></span>
+  </a>
+
+  <nav class="nav__links" aria-label="Secciones">
+    <a class="nav__link" href="#grips" data-navlink="grips">Grips y Muñequeras</a>
+  </nav>
+
+  <a
+    class="nav__cta"
+    href={waHref}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    WhatsApp
+  </a>
+</header>
+
+<style>
+  .nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem clamp(1rem, 4vw, 2.5rem);
+    background: color-mix(in srgb, var(--negro) 82%, transparent);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid color-mix(in srgb, var(--crema) 12%, transparent);
+  }
+
+  /* Fallback si no hay backdrop-filter: fondo sólido. */
+  @supports not (backdrop-filter: blur(8px)) {
+    .nav {
+      background: var(--negro);
+    }
+  }
+
+  .nav__brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--crema);
+  }
+
+  .nav__logo {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+  }
+
+  .nav__wordmark {
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    font-size: 0.95rem;
+  }
+
+  .nav__wordmark strong {
+    color: var(--blanco);
+  }
+
+  .nav__links {
+    margin-left: auto;
+    margin-right: 1rem;
+  }
+
+  .nav__link {
+    color: var(--crema);
+    text-decoration: none;
+    font-size: 0.9rem;
+    letter-spacing: 0.04em;
+    padding-bottom: 2px;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nav__link[data-active="true"],
+  .nav__link:hover,
+  .nav__link:focus-visible {
+    border-bottom-color: var(--crema);
+  }
+
+  .nav__cta {
+    background: var(--blanco);
+    color: var(--negro);
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 560px) {
+    .nav__wordmark {
+      display: none;
+    }
+    .nav__links {
+      margin-right: 0.5rem;
+    }
+    .nav__link {
+      font-size: 0.8rem;
+    }
+  }
+</style>
+
+<script>
+  // Scroll-spy: resalta "Grips y Muñequeras" cuando #grips entra en viewport.
+  const link = document.querySelector<HTMLAnchorElement>(
+    '[data-navlink="grips"]'
+  );
+  const target = document.getElementById("grips");
+  if (link && target && "IntersectionObserver" in window) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          link.dataset.active = entry.isIntersecting ? "true" : "false";
+        }
+      },
+      { rootMargin: "-40% 0px -40% 0px" }
+    );
+    io.observe(target);
+  }
+</script>

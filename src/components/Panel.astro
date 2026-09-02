@@ -1,0 +1,202 @@
+---
+import { Image } from "astro:assets";
+import { formatCOP } from "../lib/format";
+
+// Panel-picker del gymBox. role="dialog" + aria-modal, oculto por defecto
+// (lo muestra gymbox.ts). Dos variantes:
+//   - activa: miniaturas de producto + "Ver zona ↓"
+//   - "Pronto": mensaje corto + volver
+const productImages = import.meta.glob<{ default: ImageMetadata }>(
+  "../assets/productos/*.{jpg,jpeg,png}",
+  { eager: true }
+);
+
+interface Producto {
+  slug: string;
+  nombre: string;
+  precio: number;
+  imagen: string;
+}
+
+interface Props {
+  id: string;
+  nombre: string;
+  activa: boolean;
+  productos?: Producto[];
+}
+
+const { id, nombre, activa, productos = [] } = Astro.props;
+const resolve = (file: string) =>
+  productImages[`../assets/productos/${file}`]?.default;
+---
+
+<div
+  class="panel"
+  data-panel={id}
+  role="dialog"
+  aria-modal="true"
+  aria-label={`Zona: ${nombre}`}
+  hidden
+>
+  <div class="panel__inner">
+    <button class="panel__close" type="button" data-panel-close>
+      ← volver <span class="panel__esc">Esc</span>
+    </button>
+
+    {
+      activa ? (
+        <>
+          <p class="panel__eyebrow">ZONA</p>
+          <h2 class="panel__title">{nombre}</h2>
+          <ul class="panel__grid">
+            {productos.map((p) => {
+              const img = resolve(p.imagen);
+              return (
+                <li class="panel__item">
+                  {img && (
+                    <Image
+                      src={img}
+                      alt={p.nombre}
+                      width={200}
+                      class="panel__thumb"
+                      loading="lazy"
+                    />
+                  )}
+                  <span class="panel__name">{p.nombre}</span>
+                  <span class="panel__price">{formatCOP(p.precio)}</span>
+                </li>
+              );
+            })}
+          </ul>
+          <a class="panel__link" href="#grips" data-panel-verzona>
+            Ver zona ↓
+          </a>
+        </>
+      ) : (
+        <>
+          <h2 class="panel__title">Pronto</h2>
+          <p class="panel__soon">Esta zona llega enseguida.</p>
+        </>
+      )
+    }
+  </div>
+</div>
+
+<style>
+  .panel {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+  }
+
+  .panel__inner {
+    width: min(560px, 100%);
+    max-height: 82vh;
+    overflow-y: auto;
+    background: var(--negro);
+    border: 1px solid color-mix(in srgb, var(--crema) 16%, transparent);
+    border-radius: 14px;
+    padding: clamp(1.25rem, 4vw, 2rem);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+  }
+
+  @supports not (backdrop-filter: blur(12px)) {
+    .panel__inner {
+      background: var(--negro);
+    }
+  }
+
+  .panel__close {
+    background: none;
+    border: 0;
+    color: var(--crema);
+    font-size: 0.85rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    padding: 0.35rem 0;
+    margin-bottom: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .panel__esc {
+    border: 1px solid color-mix(in srgb, var(--crema) 40%, transparent);
+    border-radius: 4px;
+    padding: 0 0.35rem;
+    font-size: 0.7rem;
+  }
+
+  .panel__eyebrow {
+    margin: 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    color: var(--crema);
+  }
+
+  .panel__title {
+    margin: 0.2rem 0 1.25rem;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    color: var(--blanco);
+    letter-spacing: 0.01em;
+  }
+
+  .panel__grid {
+    list-style: none;
+    margin: 0 0 1.5rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 520px) {
+    .panel__grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .panel__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-align: left;
+  }
+
+  .panel__thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--crema) 8%, transparent);
+  }
+
+  .panel__name {
+    font-weight: 600;
+  }
+
+  .panel__price {
+    color: var(--crema);
+    font-size: 0.9rem;
+  }
+
+  .panel__link {
+    display: inline-block;
+    color: var(--negro);
+    background: var(--blanco);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 0.6rem 1.2rem;
+    border-radius: 999px;
+  }
+
+  .panel__soon {
+    color: var(--crema);
+    margin: 0;
+  }
+</style>

@@ -1,0 +1,80 @@
+---
+import Nav from "../components/Nav.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "GuaguaFit — Material de entrenamiento para crossfitters",
+  description = "GuaguaFit: grips, calleras y muñequeras para los WODs donde el agarre decide. Entrá al box.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <Nav />
+    <main>
+      <slot />
+    </main>
+
+    <style is:global>
+      /* Tokens confirmados por José — sin acento cromático. */
+      :root {
+        --negro: #111110;
+        --crema: #efe7d6;
+        --blanco: #ffffff;
+        --negro-scrim: rgba(10, 10, 9, 0.72);
+        color-scheme: dark;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--negro);
+        color: var(--crema);
+        font-family:
+          system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+          Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.5;
+      }
+
+      img {
+        max-width: 100%;
+        display: block;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--crema);
+        outline-offset: 3px;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+      }
+    </style>
+  </body>
+</html>

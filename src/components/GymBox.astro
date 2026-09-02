@@ -1,0 +1,184 @@
+---
+import Hotspot from "./Hotspot.astro";
+import Panel from "./Panel.astro";
+import zonas from "../data/zonas.json";
+import productos from "../data/productos.json";
+
+// ┌──────────────────────────────────────────────────────────────────────────┐
+// │ GymBox — hero interactivo. MISMA técnica en móvil y desktop.              │
+// │ Las 3 rutas de la interacción (implementadas en src/scripts/gymbox.ts):  │
+// │                                                                          │
+// │   tap / Enter en zona ─┬─ reduced-motion? SÍ → corte: gsap.set al estado │
+// │      (JS activo)       │     final, fade corto del panel                 │
+// │                        └─ NO → tween transform de .camara (0.5-0.7s) →   │
+// │                               scrim fade → panel fade-in                 │
+// │   sin JS ───────────────  <a href="#grips"> navega a la sección keynote  │
+// │                           (hotspots inactivos: <button> sin acción)      │
+// └──────────────────────────────────────────────────────────────────────────┘
+
+const gripsZona = zonas.find((z) => z.id === "grips")!;
+const gripsProductos = gripsZona.productos
+  .map((slug) => productos.find((p) => p.slug === slug))
+  .filter((p): p is (typeof productos)[number] => Boolean(p));
+---
+
+<section class="gymbox" id="top" aria-label="El box GuaguaFit">
+  <div class="camara" data-camara>
+    <!-- Escena del box = placeholder gris rotulado (la ilustración real por IA
+         la sustituye Harold; solo toca src/assets/ y las coords de zonas.json). -->
+    <div class="escena">
+      {
+        zonas.map((z) => (
+          <span
+            class="escena__rotulo"
+            style={`left:${z.hotspot.left}%;top:${z.hotspot.top}%`}
+            aria-hidden="true"
+          >
+            {z.nombre}
+          </span>
+        ))
+      }
+
+      {zonas.map((z) => <Hotspot zona={z} />)}
+    </div>
+  </div>
+
+  <div class="gymbox__copy">
+    <h1 class="gymbox__title">ENTRÁ AL BOX</h1>
+    <p class="gymbox__lede">Tocá una zona para ver qué hay.</p>
+  </div>
+
+  <div class="gymbox__cue" aria-hidden="true">
+    <span>Desplazá</span>
+    <span class="gymbox__cue-arrow">↓</span>
+  </div>
+
+  <!-- Scrim del zoom (fade-in por opacity). -->
+  <div class="scrim" data-scrim aria-hidden="true"></div>
+
+  <!-- Panels: uno real para grips, uno compartido "Pronto". -->
+  <Panel
+    id={gripsZona.id}
+    nombre={gripsZona.nombre}
+    activa={true}
+    productos={gripsProductos}
+  />
+  <Panel id="__pronto" nombre="Pronto" activa={false} />
+</section>
+
+<style>
+  .gymbox {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    background: var(--negro);
+  }
+
+  .camara {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+    transform-origin: 50% 50%;
+  }
+
+  .escena {
+    position: absolute;
+    inset: 0;
+    min-height: 100svh;
+    background:
+      radial-gradient(
+        circle at 30% 20%,
+        rgba(239, 231, 214, 0.06),
+        transparent 45%
+      ),
+      linear-gradient(160deg, #1c1c1a, #111110 60%);
+  }
+
+  .escena__rotulo {
+    position: absolute;
+    transform: translate(-50%, -140%);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--crema) 45%, transparent);
+    border: 1px dashed color-mix(in srgb, var(--crema) 22%, transparent);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    pointer-events: none;
+  }
+
+  .gymbox__copy {
+    position: absolute;
+    left: clamp(1rem, 5vw, 3.5rem);
+    top: 22%;
+    z-index: 10;
+    max-width: 22ch;
+    pointer-events: none;
+  }
+
+  .gymbox__title {
+    margin: 0;
+    font-size: clamp(2.6rem, 9vw, 5.5rem);
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    color: var(--blanco);
+    text-shadow: 0 2px 24px rgba(10, 10, 9, 0.6);
+  }
+
+  .gymbox__lede {
+    margin: 1rem 0 0;
+    font-size: clamp(1rem, 2.4vw, 1.35rem);
+    color: var(--crema);
+    text-shadow: 0 2px 16px rgba(10, 10, 9, 0.7);
+  }
+
+  .gymbox__cue {
+    position: absolute;
+    left: 50%;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: color-mix(in srgb, var(--crema) 70%, transparent);
+  }
+
+  .gymbox__cue-arrow {
+    animation: cue-bob 1.8s ease-in-out infinite;
+  }
+
+  @keyframes cue-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(4px);
+    }
+  }
+
+  .scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: var(--negro-scrim);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .gymbox__cue-arrow {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { initGymBox } from "../scripts/gymbox";
+  initGymBox();
+</script>
