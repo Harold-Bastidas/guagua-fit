@@ -92,6 +92,11 @@ const resolve = (file: string) =>
     padding: 1.5rem;
   }
 
+  /* `display: grid` gana al UA [hidden]{display:none} — hay que forzarlo. */
+  .panel[hidden] {
+    display: none;
+  }
+
   .panel__inner {
     width: min(560px, 100%);
     max-height: 82vh;

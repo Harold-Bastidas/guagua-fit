@@ -29,9 +29,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "bun run build && bun run preview",
+    // astro check ya corre en `bun run build`; aquí solo compilamos + servimos.
+    command: "bunx astro build && bunx astro preview",
     url: BASE_URL,
-    timeout: 120_000,
+    timeout: 240_000,
     reuseExistingServer: !process.env.CI,
   },
 });
