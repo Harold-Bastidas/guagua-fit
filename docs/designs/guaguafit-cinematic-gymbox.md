@@ -14,37 +14,39 @@ El entregable inmediato **no es el sitio de producción**, es una **demo rápida
 
 ## What Makes This Cool
 
-El gancho es la **navegación espacial**: en vez de una grilla de tienda aburrida, entras a un box de crossfit ilustrado a pantalla completa. Ves el rack de levantamiento, la zona de gimnásticos, el cardio, los accesorios. Haces click en el rack y la "cámara" hace un zoom/paneo cinemático hacia esa esquina mientras el resto se desenfoca, y aparece la selección de barras y discos con el lenguaje visual de una keynote (un producto héroe a la vez, tipografía grande, mucho aire, foto sobre fondo limpio).
+El gancho es la **navegación espacial**: en vez de una grilla de tienda aburrida, entras a un box de crossfit ilustrado a pantalla completa. Tocás una zona (el rack de levantamiento) y la "cámara" hace un zoom hacia esa esquina mientras el resto se apaga, y aparecen las barras y discos con el lenguaje visual de una keynote (un producto héroe a la vez, tipografía grande, mucho aire).
 
-El "wow" para José: abre el link en su celular, ve el box, toca una zona, y siente que su tienda de barras y kettlebells se ve como el lanzamiento de un iPhone. Ninguna tienda de crossfit local se ve así.
+El "wow" para José: **abre el link en su celular**, ve el box, toca una zona, y siente que su tienda se ve como el lanzamiento de un iPhone. El zoom funciona en su teléfono, no solo en una laptop — la misma técnica (`transform`) corre en móvil (cámara-lite) y desktop. Ninguna tienda de crossfit local se ve así.
 
-La combinación de lenguajes: **el gymBox es el gancho de la portada** (exploración espacial). De ahí hacia abajo, cada categoría y cada producto se cuenta con **scroll narrativo estilo Apple** (animaciones atadas al scroll, un héroe a la vez).
+**La demo es un vertical slice:** una zona (Levantamiento) al 100% — ilustración real, motion afinado, copy real. Las otras 3 son hotspots visibles que dicen "Pronto". Si José aprueba el concepto, se expanden. De la zona hacia abajo, la sección se cuenta con **scroll narrativo estilo Apple**.
 
 ## Constraints
 
 - **Solo existe el logo.** Logo tipo cabeza de animal agresiva (`LOGO JOSE NEGRO PNG.png`) + lockup tipográfico "GUAGUA FIT" con textura grunge, en azul marino muy oscuro (~`#1a2340`). Todo lo demás (escena del box, fotos de producto, listado, precios) es placeholder por ahora.
 - **Demo, no producción.** Prioridad: que se vea y se sienta el concepto. No robustez, no SEO perfecto, no CMS.
 - **Rendimiento móvil es innegociable.** José la va a abrir en su teléfono. Si tarda o va a tirones, la demo fracasa en el peor momento.
-- **Cero backend.** Sitio 100% estático. CTA de producto = botón a WhatsApp / "dónde comprar" (asumido, pendiente de confirmar con José — ver Open Questions).
+- **Cero backend.** Sitio 100% estático. CTA de producto = botón a WhatsApp / "dónde comprar" (asumido, pendiente de confirmar con José — ver "Preguntas para José").
 - **Público final:** personas que entrenan crossfit (compran barras, discos, kettlebells, anillas, cuerdas, cajones, remos, ropa, accesorios).
 
 ## Premises
 
-1. **La demo usa placeholders.** Ilustración del box generada por IA o stock. **La demo ship con exactamente 4 zonas:** (a) Levantamiento — barras y discos, (b) Kettlebells y mancuernas, (c) Gimnásticos — anillas, cuerdas, cajones, paralelas, (d) Cardio — remo, assault bike, comba. Accesorios y Ropa quedan para después (no hay concepto de "zona pendiente" en la demo; simplemente no están). Se sustituye con material real de José después.
-2. **El gymBox = escena 2D ilustrada a pantalla completa, 4 zonas clickeables, transición cinemática (zoom/paneo + fade) a un panel con los productos de esa zona.** Sin 3D, sin WebGL. Los hotspots son rectángulos (`<rect>`), no formas libres.
-3. **Móvil necesita una versión distinta del gymBox** (lista vertical de tarjetas de zona o scroll con anclas). Una escena panorámica con hotspots no funciona en pantalla chica. Es ~30% del esfuerzo del componente, no un detalle.
-4. **El objetivo #1 es la aprobación de José.** Se prioriza el look-and-feel sobre robustez.
-5. **Se despliega en Vercel/Netlify con URL pública** para que José la abra desde el teléfono.
+> Revisadas tras `/plan-eng-review` + voz externa. El plan pasó de "esqueleto de 4 zonas a fidelidad placeholder" a **vertical slice de 1 zona al 100%**.
 
-Todas confirmadas por el usuario sin objeciones.
+1. **Vertical slice.** La demo se construye con **UNA zona completa y real** (Levantamiento — barras y discos): ilustración real de esa esquina del box, motion afinado, copy real, imágenes reales. Las otras 3 zonas (Kettlebells, Gimnásticos, Cardio) existen como hotspots visibles en la escena pero muestran "Pronto" al tocarlas. Si José aprueba el concepto con el slice, se expanden rápido. Cuatro zonas al 40% convencen menos que una al 100%.
+2. **El gymBox = escena 2D ilustrada a pantalla completa con hotspots.** Tocar una zona hace un **zoom por `transform`** (scale+translate sobre un wrapper) + panel con los productos. Sin 3D, sin WebGL. **La misma técnica corre en móvil y desktop** (móvil no es una vista degradada — es cámara-lite: el mismo zoom con menos coreografía).
+3. **El objetivo #1 es la aprobación de José, que la va a abrir desde su teléfono.** Por eso el gymBox tiene que funcionar y sentirse bien en móvil, no solo en desktop.
+4. **Antes de escribir código se le mandan a José las 5 preguntas** (color de acento, animal del logo, IA vs foto del local, CTA final, idioma). Varias cambian el build y cuestan un WhatsApp.
+5. **Se despliega en Vercel con URL pública** para que José la abra desde el teléfono.
+
+Confirmadas por el usuario en la revisión.
 
 ## Approaches Considered
 
-### Approach A: Astro + GSAP, escena con hotspots SVG (ELEGIDA)
-Sitio estático en Astro. Ilustración del box a pantalla completa + capa SVG con 4 zonas clickeables. GSAP para el zoom/paneo cinemático (tween de `viewBox`); GSAP ScrollTrigger para las secciones scroll estilo Apple. Tailwind para estilos. En móvil la escena colapsa a lista vertical de tarjetas de zona.
-- Esfuerzo: **~2-3 h (CC) para la demo mecánica clickeable; ~3-6 h en total hasta el nivel de los Success Criteria** (60fps, reduced-motion, fallback sin JS, móvil pulido, disciplina de assets, ilustración final). Ver Next Steps — la primera pasada es "solo mecánica". · Riesgo: Bajo
-- HTML estático liviano → carga rápido en móvil. GSAP es el estándar para este efecto. Fácil de mantener por un tercero.
-- Contra: la escena es una imagen plana (el "zoom" convence pero no es profundidad real); recolocar zonas del box = re-ilustrar.
+### Approach A: Astro + GSAP, escena con hotspots + zoom por transform (ELEGIDA)
+Sitio estático en Astro. Ilustración del box a pantalla completa + hotspots (`<button>` posicionados por %, o `<g>` en un SVG). GSAP para el zoom por `transform: scale/translate` sobre un wrapper (nativo, compositor-cheap, misma ruta móvil+desktop). GSAP ScrollTrigger para la entrada de la sección keynote. Tailwind.
+- Esfuerzo del **vertical slice (1 zona)**: **~3-5 h (CC)** incluyendo la ilustración real de esa zona (el ítem más caro, ~1-2 h solo). Expandir a las otras 3 zonas post-aprobación: ~1-2 h. · Riesgo: Medio (la ilustración).
+- HTML estático liviano → carga rápido en móvil. `transform` es la técnica de menor riesgo. Fácil de mantener.
+- Contra: la escena es una imagen plana (el zoom convence pero no es profundidad real); la ilustración es el cuello de botella.
 
 ### Approach B: Next.js + React + Framer Motion, arquitectura de catálogo (descartada)
 Escala a e-commerce real en fase 2 sin reescribir; datos estructurados; transición `layoutId` casi gratis. **Rechazada para la demo:** más peso de JS (peor rendimiento móvil, que es la prioridad) y over-engineering hasta que José confirme que quiere vender online.
@@ -59,94 +61,94 @@ Ilustración isométrica del box; cada zona es un plano en un espacio con `persp
 ### Arquitectura del sitio
 
 ```
-/  (una sola página, todo scroll)
-  ├─ Nav sticky (siempre visible): wordmark · Box · Levantamiento · Kettlebells
-  │    · Gimnásticos · Cardio · [WhatsApp]   — scroll-spy resalta la zona activa
-  ├─ Hero = GymBox interactivo (el gancho, ocupa el primer viewport)
-  │    Desktop: escena SVG a pantalla completa
-  │             hero-copy sobre la escena (izq): "ENTRÁ AL BOX" + 1 frase
-  │             4 hotspots <rect> con marcador naranja SIEMPRE visible
-  │             click → cámara + panel-picker con miniaturas de esa zona
-  │             scroll-cue abajo-centro
-  │    Móvil:   hero-copy + lista vertical de 4 tarjetas de zona
-  ├─ 4 secciones keynote, una por zona (#levantamiento, #kettlebells, …)
-  │    un héroe de producto por sección (entrada por ScrollTrigger),
-  │    resto de productos de la zona listados debajo sin pin
-  ├─ Sección "Sobre GuaguaFit" (marca, breve)
-  └─ Footer: contacto, WhatsApp, redes
+/  (una sola página, todo scroll) — VERTICAL SLICE: solo la zona Levantamiento está "viva"
+  ├─ Nav sticky: wordmark · Levantamiento · [WhatsApp]
+  │    (con 1 zona activa el scroll-spy es trivial; se generaliza al expandir)
+  ├─ Hero = GymBox interactivo (ocupa el primer viewport, móvil + desktop)
+  │    escena ilustrada a pantalla completa
+  │    hero-copy sobre la escena: "ENTRÁ AL BOX" + "Tocá una zona para ver qué hay"
+  │    4 hotspots con marcador naranja SIEMPRE visible
+  │      · Levantamiento → zoom + panel + "Ver zona"
+  │      · Kettlebells / Gimnásticos / Cardio → tap muestra "Pronto" (no navegan)
+  │    scroll-cue abajo-centro
+  ├─ 1 sección keynote: #levantamiento
+  │    layout fijo (badge · título+1 frase+CTA izq · imagen der · 4 puntos)
+  │    grilla de ~5 productos de la zona debajo, sin pin
+  ├─ Sección "Sobre GuaguaFit" (marca, 2 frases)
+  └─ Footer: WhatsApp, redes
 ```
 
-**Relación panel ↔ sección keynote:** el panel del gymBox es un *picker rápido* — miniaturas + nombre. Tap en una miniatura o en "Ver zona" → scroll suave a la sección keynote de esa zona (`#id`). La sección keynote es la presentación completa. No hay contenido duplicado: el panel muestra imagen + nombre, la sección muestra el héroe grande + copy + CTA.
+**Relación panel ↔ sección keynote:** el panel del gymBox es un *picker rápido* (miniaturas + nombre). Tap en una miniatura o en "Ver zona" → scroll suave a `#levantamiento`. La sección keynote es la presentación completa. Sin contenido duplicado.
 
-Sin páginas de detalle `/producto/[slug]` en la demo (queda para v2). El CTA de WhatsApp vive en la sección keynote.
+Sin páginas de detalle `/producto/[slug]` (v2). El CTA de WhatsApp vive en la sección keynote y en la grilla de productos.
 
 ### Datos (archivos, no backend)
 
 ```
-src/data/zonas.json       [{ id, nombre, hotspot: {x,y,w,h}, color, imagen, productos: [slug] }]
+src/data/zonas.json       [{ id, nombre, hotspot: {left, top},   // % sobre la escena, centro del marcador
+                              zoom: {scale, x, y},               // destino de la cámara
+                              activa: bool, productos: [slug] }]
 src/data/productos.json    [{ slug, nombre, zona, imagen }]
 ```
 
-Modelo mínimo para la demo (sin `precio`/`descripcion`: precios inventados confundirían a José sobre qué está aprobando). Los campos de catálogo real se agregan cuando llegue el material de José. Agregar un producto = editar un JSON. Sin CMS.
+Para el slice: `zonas.json` tiene las 4 zonas pero solo Levantamiento con `activa: true` y productos reales. Modelo mínimo (sin `precio`/`descripcion`: precios inventados confundirían a José). Agregar un producto = editar un JSON. Sin CMS.
 
-**`zonas.json` `.id` es la única fuente de verdad del identificador de zona.** Lo consumen: el ancla `#{id}` de la sección keynote, el scroll-spy de la nav, el `href` del hotspot, el link de la tarjeta móvil y el "Ver zona" del panel. Un `id` desincronizado = un link muerto silencioso. Salvaguarda: un check de build (`scripts/check-data.mjs`, corre en `prebuild`) que falla si algún `productos.json[].zona` no existe en `zonas.json[].id`, o si un `zonas.json[].productos[]` referencia un slug inexistente. Para la demo se usan JSON planos importados; Content Collections de Astro (schema Zod) es el upgrade natural para v2 si el catálogo crece.
+**`zonas.json` `.id` es la única fuente de verdad del identificador de zona.** Lo consumen: el ancla `#{id}` de la sección keynote, el `href` del hotspot, el "Ver zona" del panel (y el scroll-spy cuando haya >1 zona). Un `id` desincronizado = link muerto silencioso. Salvaguarda: `scripts/check-data.mjs` en `prebuild` falla si algún `productos.json[].zona` no existe en `zonas.json[].id`, o si un `zonas.json[].productos[]` referencia un slug inexistente. JSON planos para la demo; Content Collections de Astro (schema Zod) es el upgrade para v2.
 
 ### Componente GymBox
 
-- **Desktop:** `<svg viewBox="0 0 1600 900">` con la ilustración de fondo como `<image>` y 4 `<rect>` transparentes (uno por zona).
-  - **Affordance (siempre visible, no depende de hover):** sobre cada `<rect>`, un marcador = círculo Ø34 con borde naranja `#FF5722` + un "+" + etiqueta corta en mayúsculas (`LEVANTAMIENTO`, etc.) sobre fondo `rgba(18,23,43,.85)`. Al cargar la escena, un pulso sutil (`scale`/`opacity`, 1 ciclo, se desactiva con `prefers-reduced-motion`). Hover/focus solo *aumenta* el énfasis (halo más grande) — nunca es el único indicio. La hero-copy incluye la instrucción explícita: **"Tocá una zona para ver qué hay."**
-  - **Técnica de cámara:** GSAP tween sobre el **atributo `viewBox`** del `<svg>` vía el **`AttrPlugin` de GSAP** (`gsap.core` no anima atributos; `gsap.registerPlugin(AttrPlugin)`). Se interpolan los 4 números hacia el bounding box del hotspot con padding: `gsap.to(svg, { attr: { viewBox: "420 210 640 360" }, duration: 0.8, ease: "power3.inOut" })`. Nada de `transform: scale` sobre el SVG ni de `transformOrigin` en unidades de usuario — animar `viewBox` evita todos los gotchas de origen en SVG y da el paneo+zoom en un solo tween. **El prototipo de la Pasada 1 debe confirmar que el AttrPlugin interpola el string de 4 números limpio** (es su comportamiento documentado, pero hay que verlo en el navegador objetivo).
-  - **Foco visual (no se anima `filter: blur()`):** la secuencia es (1) tween de `viewBox` — zoom real hacia la zona; (2) al asentarse, fade-in de un **scrim oscuro** (div a pantalla completa, gradiente, tween de `opacity`) que apaga los bordes; (3) el panel entra sobre el scrim. El "desenfoque de fondo" es un `backdrop-filter: blur(12px)` **estático** aplicado solo al elemento del panel (superficie chica = barato; si el navegador no lo soporta, el panel queda con fondo sólido casi-negro). No hay copia borrosa de la escena completa — el zoom + scrim + panel ya dan la profundidad, y blurear todo el frame anularía el zoom.
-  - **Panel-picker:** fade-in (opacity + translateY 16px) tras el tween de cámara y el scrim. Miniaturas de los productos de la zona.
-  - **Salir:** botón "volver" + tecla `Esc` revierten el tween de `viewBox` y ocultan el panel. El estado de zoom es **solo en página** — no crea entrada de historial, el botón "atrás" del navegador no interactúa con él.
-  - **Accesibilidad JS-on:** cada `<rect>` es focuseable (`tabindex`, `role="button"`, `aria-label="Zona: {nombre}"`), Enter/Space activa. Al abrir el panel se mueve el foco al primer elemento del panel; al cerrar, vuelve al hotspot de origen.
-- **Móvil / tablet-portrait** (`< 900px`): se renderiza una lista de 4 tarjetas (imagen de zona + nombre + nº de productos). Tap → scroll suave a la sección keynote de esa zona. Sin SVG, sin cámara. Tablet-landscape usa la vista desktop.
-- **Fallback sin JS:** los `<rect>` van envueltos en `<a xlink:href="#zona-id">`; el sitio navega a las secciones sin GSAP.
+**Estructura (móvil + desktop, misma):** un contenedor `.escena` con la ilustración del box como `<Image>` de fondo (`object-fit: cover`) y los hotspots como `<button>` posicionados en % sobre ella (`position: absolute; left: 62%; top: 30%`). Sin SVG — evita el AttrPlugin, el fallback `xlink`, y los quirks de foco/ARIA del SVG. Un `.camara` (wrapper que envuelve escena + hotspots) es lo que se anima.
 
-**Las 3 rutas de la interacción del gymBox** (documentar con un comentario ASCII corto en `GymBox.astro`, son fáciles de dejar pudrir):
+- **Affordance (siempre visible, no depende de hover):** cada hotspot `<button>` = círculo Ø34-44 con borde naranja `#FF5722` + "+" + etiqueta corta en mayúsculas sobre fondo `rgba(18,23,43,.85)`. Pulso sutil al cargar (`scale`/`opacity`, 1 ciclo, off con `prefers-reduced-motion`). Hover/focus solo aumenta el énfasis. Hero-copy con la instrucción: **"Tocá una zona para ver qué hay."** Target táctil ≥44px en móvil.
+- **Zoom (cámara por `transform`, GSAP nativo, sin AttrPlugin):** al tocar un hotspot, `gsap.to(".camara", { scale: 2.2, x: <dx>, y: <dy>, transformOrigin: "<hotspot center %>", duration: 0.7, ease: "power3.inOut" })`. `dx/dy` centran el hotspot en el viewport. Compositor-cheap (solo `transform`). **Móvil = cámara-lite:** mismo tween, `scale: 1.8`, duración 0.5s, sin el paneo largo — el mismo lenguaje, menos coreografía.
+- **Foco visual:** (1) tween de `transform` de la cámara; (2) fade-in de un scrim oscuro (`div` a pantalla completa, `opacity`); (3) panel entra sobre el scrim. El panel lleva `backdrop-filter: blur(12px)` estático (superficie chica); fallback = fondo sólido `#12172b`.
+- **Panel-picker:** fade-in (`opacity` + `translateY 16px`) tras la cámara. Miniaturas (`<Image>`) de los productos de la zona. Solo Levantamiento tiene productos reales; las otras 3 muestran un panel "Pronto" corto.
+- **Salir:** botón "volver" + `Esc` revierten el tween de la cámara y ocultan panel+scrim. Estado solo en página, no toca el historial.
+- **Accesibilidad:** hotspots son `<button>` nativos (focuseables, Enter/Space gratis), `aria-label="Zona: {nombre}"`. Al abrir el panel, foco al primer elemento; al cerrar, vuelve al hotspot de origen. Panel con `role="dialog"` + `aria-modal`, trap de foco mientras está abierto.
+- **Sin JS:** los `<button>` degradan a un `<a href="#levantamiento">` (progressive enhancement: se renderiza como `<a>`, el JS lo mejora a botón con panel). Secciones visibles por defecto.
+
+**Las 3 rutas de la interacción** (comentario ASCII corto en `GymBox.astro`):
 
 ```
-                       ┌─ prefers-reduced-motion? ─ SÍ → corte: viewBox salta + fade corto del panel
-click / Enter en zona ─┤
-   (JS activo)          └─ NO → tween AttrPlugin viewBox (0.8s) → scrim fade → panel fade-in
-sin JS ───────────────── <a href="#zona-id"> navega a la sección keynote (sin cámara, sin panel)
+                       ┌─ prefers-reduced-motion? ─ SÍ → corte: cámara salta a scale, fade corto del panel
+tap / Enter en zona ───┤
+   (JS activo)          └─ NO → tween transform cámara (0.5-0.7s) → scrim fade → panel fade-in
+sin JS ───────────────── <a href="#levantamiento"> navega a la sección keynote
 ```
-
-Las tres se cubren en tests E2E (ver "Tests").
 
 ### Motion (lenguaje Apple)
 
-- Curva por defecto: `power3.out` (cámara `power3.inOut`), duraciones 0.6-0.9s para cámara, 0.3-0.4s para UI.
-- **Las 4 secciones keynote se renderizan visibles por defecto.** ScrollTrigger solo *añade* una transición de entrada (fade + `translateY(40px→0)`, imagen con parallax leve `yPercent: -8`). Sin JS o con `prefers-reduced-motion`, se ven completas y estáticas — nunca una sección en blanco.
-- `prefers-reduced-motion`: desactiva parallax y el tween de cámara (el zoom se vuelve un corte con fade corto), deja fades de UI.
-- Presupuesto: se animan `transform` y `opacity` (compositor, baratos) y el atributo `viewBox` del SVG. **El tween de `viewBox` es paint-bound, no compositor-cheap** — es aceptable porque corre **solo en desktop** (móvil recibe la lista de tarjetas, sin SVG ni cámara) y sobre una sola escena. Se prototipa en la Pasada 1 en una máquina de gama media antes de comprometerlo. Nunca se anima `width`/`height`/`top`/`left`/`filter`.
-- **Imports de GSAP modulares** (tree-shakeable): `import gsap from "gsap"`, `import { ScrollTrigger } from "gsap/ScrollTrigger"`, `import { AttrPlugin } from "gsap/AttrPlugin"` — nunca el bundle completo (`gsap/all`). Total esperado ~42-52 KB gz.
-- **El gymBox NO se pinnea con ScrollTrigger.** La cámara se dispara por click, no por scroll; el usuario scrollea y pasa el hero normalmente. ScrollTrigger solo se usa para las entradas de las 4 secciones keynote.
+- Curva por defecto: `power3.out` (cámara `power3.inOut`), 0.5-0.7s cámara, 0.3-0.4s UI.
+- **La sección keynote se renderiza visible por defecto.** ScrollTrigger solo *añade* la entrada (fade + `translateY(40px→0)`, imagen con parallax leve `yPercent: -8`). Sin JS o `reduced-motion` → visible y estática, nunca en blanco.
+- `prefers-reduced-motion`: sin parallax; el zoom se vuelve un corte (la cámara salta al `scale` final sin tween), deja fades de UI.
+- Presupuesto: **solo `transform` y `opacity`** (compositor, baratos). Nunca `width`/`height`/`top`/`left`/`filter`.
+- **Imports de GSAP modulares** (tree-shakeable): `import gsap from "gsap"`, `import { ScrollTrigger } from "gsap/ScrollTrigger"` — nunca el bundle completo (`gsap/all`). Sin AttrPlugin (la cámara es `transform`). Total esperado ~40-48 KB gz.
+- **El gymBox NO se pinnea con ScrollTrigger** — la cámara es tap, no scroll; el usuario scrollea y pasa el hero. ScrollTrigger solo se usa para la entrada de la sección keynote.
 
-### UI: nav, hero, secciones keynote, estados (revisión /plan-design-review)
+### UI: nav, hero, sección keynote, estados (revisión /plan-design-review)
 
-**Nav sticky (todas las vistas).** Barra fija arriba: wordmark (logo, imagen) a la izquierda · enlaces a las 4 zonas + "Box" (vuelve arriba) · botón CTA "WhatsApp" a la derecha. Scroll-spy: el enlace de la zona en viewport se resalta en naranja. En móvil los enlaces colapsan a un menú, pero el wordmark y el CTA WhatsApp quedan siempre visibles. Pasa el *trunk test*: tapando todo menos la nav, sabés qué sitio es y en qué zona estás.
+**Nav sticky (móvil + desktop).** Barra fija arriba: wordmark (logo, imagen) a la izquierda · enlace "Levantamiento" (ancla a `#levantamiento`) · botón CTA "WhatsApp" a la derecha. Con 1 zona el scroll-spy es trivial (se resalta "Levantamiento" al pasar la sección). Al expandir a 4 zonas, los enlaces colapsan a un menú en móvil. Pasa el *trunk test*.
 
-**Hero = el GymBox** (no son dos pantallas). Presupuesto de hero landing: marca (wordmark en nav) + 1 titular ("ENTRÁ AL BOX") + 1 frase de apoyo con la instrucción ("Tocá una zona para ver qué hay") + 1 grupo CTA (los 4 hotspots cuentan como el CTA principal; el WhatsApp de la nav es el secundario) + 1 imagen (la escena). Hero-copy alineada a la izquierda sobre la escena, hotspots hacia el centro/derecha, scroll-cue abajo-centro. Sin cards en el hero.
+**Hero = el GymBox** (no son dos pantallas). Presupuesto de hero landing: marca (wordmark en nav) + 1 titular ("ENTRÁ AL BOX") + 1 frase con la instrucción ("Tocá una zona para ver qué hay") + 1 grupo CTA (los hotspots son el CTA principal; el WhatsApp de la nav el secundario) + 1 imagen (la escena). Hero-copy a la izquierda sobre la escena, hotspots hacia el centro/derecha, scroll-cue abajo-centro. Sin cards.
 
-**Sección keynote (una por zona), layout fijo:**
+**Sección keynote `#levantamiento`, layout fijo:**
 - Badge de zona arriba-izquierda (`ZONA · LEVANTAMIENTO`, naranja, mayúsculas).
-- Columna de texto a la izquierda: título grande (2-4 palabras) + 1 frase + botón "Consultar por WhatsApp" (borde naranja). El cuerpo va en `#F4F5F7`, **nunca en naranja**.
-- Imagen del producto héroe a la derecha.
-- Indicador de posición abajo-derecha: 4 puntos, el activo en naranja (dice al usuario "vas por la 2 de 4").
-- Debajo del héroe, sin pin: el resto de productos de la zona en una grilla simple (imagen + nombre), cada uno enlaza al mismo WhatsApp con mensaje pre-rellenado.
-- Una sola función por sección: presentar una zona. Sin repetir el mismo mensaje de marca entre secciones.
+- Columna de texto a la izquierda: título grande (2-4 palabras) + 1 frase + botón "Consultar por WhatsApp" (borde naranja). Cuerpo en `#F4F5F7`, **nunca naranja**.
+- Imagen del producto héroe a la derecha (`<Image>`).
+- Indicador de posición abajo-derecha: 4 puntos (1 activo naranja) — anticipa las 4 zonas aunque solo 1 esté viva.
+- Debajo del héroe, sin pin: ~5 productos de la zona en grilla simple (imagen + nombre), cada uno enlaza a WhatsApp con mensaje pre-rellenado.
+- Una sola función: presentar la zona Levantamiento.
 
 **Estados:**
 
 | Momento | Qué ve el usuario |
 |---|---|
-| Carga de la escena del box (desktop) | Fondo `#12172b` + wordmark + los 4 marcadores ya posicionados (coordenadas fijas en `zonas.json`) + LQIP de la ilustración. El layout no salta cuando entra la imagen. |
-| Carga móvil | Hero-copy (texto) pinta primero; las 4 tarjetas usan la imagen de zona con LQIP. |
-| Zona sin productos en la demo | La tarjeta/enlace de esa zona muestra "Pronto" en gris y no es clickeable. No se rompe. (Con las 4 zonas pobladas esto no debería ocurrir; es la red de seguridad.) |
-| Panel-picker abierto | "volver · Esc" visible arriba-derecha del panel; scrim oscuro detrás; el resto de la nav sigue accesible. |
-| Sin JS | Nav = enlaces ancla normales; hotspots = `<a>` a las secciones; secciones keynote visibles y estáticas. Todo navegable. |
-| Error | No hay estado de error real: sitio estático, sin llamadas de red en runtime salvo assets (que degradan con LQIP / texto). |
+| Carga de la escena del box | Fondo `#12172b` + wordmark + los 4 marcadores ya posicionados (`left/top` en `zonas.json`) + LQIP de `astro:assets`. El layout no salta al entrar la imagen. |
+| Carga móvil | Hero-copy (texto) pinta primero; la escena entra con LQIP. |
+| Tap en Kettlebells / Gimnásticos / Cardio | Panel corto "Pronto — esta zona llega enseguida" + botón volver. No navega, no rompe. Deja claro que hay más. |
+| Panel-picker abierto | "volver · Esc" visible arriba-derecha; scrim oscuro detrás; nav sigue accesible; foco atrapado en el panel (`role="dialog"`). |
+| Sin JS | Nav = anclas normales; hotspots renderizados como `<a href="#levantamiento">`; sección keynote visible y estática. Navegable. |
+| Error | No hay estado de error real: sitio estático, sin red en runtime salvo assets (degradan con LQIP). |
 
 **Contraste:** `#FF5722` sobre `#12172b` ≈ 5.7:1 — cumple AA para texto grande, bordes de botón y marcadores UI. No usar naranja para texto de cuerpo. Texto de cuerpo siempre `#F4F5F7` sobre `#12172b` (≈ 15:1).
 
@@ -155,9 +157,10 @@ Las tres se cubren en tests E2E (ver "Tests").
 - **Pipeline de imágenes = `astro:assets`.** No se hace a mano. `<Image>` / `<Picture>` de Astro generan AVIF+WebP, `srcset`, `width`/`height` (evita CLS) y LQIP en build. La ilustración del box es `<Image priority>` (equivale al preload). Las fotos de producto son `<Image loading="lazy">` salvo el primer héroe visible.
 - **Ilustración del box:** el master que se le pasa a `astro:assets` debe salir ≤ ~220 KB en AVIF a 1600w (Astro se encarga de las variantes menores). Objetivo LCP < 2.5s en 4G depende de esto.
 - **Fotos de producto placeholder:** master razonable, Astro las comprime; `loading="lazy"` salvo la primera visible.
-- **Tipografía display:** candidato **Anton** (Google Fonts, licencia OFL — self-hostable sin problema vía google-webfonts-helper; condensada, pesada, "gym"). Alternativa **Oswald** (OFL) si Anton es demasiado bloque. La textura grunge del lockup NO viene de la fuente — se usa el logo como imagen para el wordmark y, si se quiere grano en otros titulares, un overlay de textura SVG/PNG por CSS. Cuerpo: **Inter** (OFL). Ambas self-host WOFF2, `font-display: optional`, `<link rel="preload">` de la display. Sin llamadas a Google Fonts en runtime. Confirmar la elección final en `/plan-design-review`, pero la licencia ya está resuelta (OFL para las tres).
-- **JS:** Astro parte de ~0 JS; GSAP core + ScrollTrigger ≈ 40-50 KB gz. Es el único bundle.
-- Sin esta disciplina, un PNG naíf del héroe hace fallar `< 2.5s` y Lighthouse. El objetivo es alcanzable pero es *condicional* a esto.
+- **Tipografía display:** candidato **Anton** (OFL, self-hostable vía google-webfonts-helper; condensada, "gym"). Alternativa **Oswald** (OFL). El wordmark GuaguaFit es el logo (imagen), no la fuente. Cuerpo: **Inter** (OFL). Self-host WOFF2, **`font-display: swap` + `<link rel="preload">` de la display** (no `optional`: el titular keynote debe renderizar en Anton en la primera visita de José, no en la fuente de sistema). Sin llamadas a Google Fonts en runtime.
+- **JS:** Astro parte de ~0 JS; GSAP core + ScrollTrigger ≈ 40-48 KB gz. Único bundle.
+- Sin esta disciplina, un PNG naíf del héroe hace fallar `< 2.5s` y Lighthouse.
+- **Plan B si Lighthouse (L1) vuelve < 90:** bajar peso del master de la ilustración, `loading="lazy"` en más imágenes, o entregar igual con una nota a José ("va a afinar en producción"). El envío a José NO se bloquea en un número — 78 con la demo funcionando le sirve para aprobar el concepto.
 
 ### Identidad visual (punto de partida, a validar con /plan-design-review)
 
@@ -165,54 +168,63 @@ Las tres se cubren en tests E2E (ver "Tests").
 - **Tipografía:** Anton (u Oswald) condensada para titulares + Inter para cuerpo. Contraste alto entre ambas = lenguaje keynote. El wordmark GuaguaFit es el logo (imagen), no texto.
 - **Layout:** mucho aire, un elemento protagonista por viewport, imágenes de producto sobre fondo limpio o el mismo casi-negro.
 
-## Tests (revisión /plan-eng-review — suíte E2E enfocada)
+## Tests (revisión /plan-eng-review — calibrado a "demo desechable")
 
-Sin infra de tests hoy. Se añade en la Pasada 1, junto al código, no como follow-up.
+El slice es un artefacto que se tira cuando se scopea el sitio real. La suíte completa (que este review propuso primero) es gold-plating: los snapshots visuales thrashean mientras el diseño no está fijo, y la ruta sin-JS es un escenario que no ocurre en la vida de esta demo. Se baja a:
 
-**Setup:** Playwright (`@playwright/test`), config con proyectos `desktop` (1280×800) y `mobile` (390×844). `npm test` corre contra `astro build && astro preview`.
+**2 smoke tests Playwright** (`@playwright/test`, corre contra `astro preview`):
+- **S1 (desktop):** cargar `/` → los 4 marcadores visibles → tap en Levantamiento → el panel aparece con productos → "Ver zona" → scroll a `#levantamiento`.
+- **S2 (móvil, 390×844):** cargar `/` → tap en Levantamiento → el panel aparece (cámara-lite) → "volver" cierra.
 
-| # | Test | Tipo | Qué asegura |
-|---|---|---|---|
-| E1 | click en hotspot → panel aparece con los productos de esa zona; tween de cámara ocurre | E2E desktop | La interacción central funciona |
-| E2 | "Ver zona" en el panel → scroll a la sección keynote correcta (`#id`) | E2E desktop | El puente panel→keynote |
-| E3 | botón "volver" y tecla `Esc` → panel se cierra, `viewBox` vuelve al inicial, foco regresa al hotspot de origen | E2E desktop + a11y | Salir del zoom; foco no se pierde |
-| E4 | Tab llega a los 4 hotspots, `Enter`/`Space` abre el panel, foco entra al panel | E2E a11y | Navegable sin mouse |
-| E5 | `reducedMotion: 'reduce'` → al abrir zona no hay tween largo (corte), el panel igual aparece | E2E desktop | La ruta reduced-motion no se rompe |
-| E6 | `javaScriptEnabled: false` → los hotspots son `<a>` que navegan a `#id`; las 4 secciones keynote están visibles (no en blanco) | E2E | El fallback sin JS |
-| E7 | viewport móvil → renderiza 4 tarjetas de zona (no SVG); tap en tarjeta → scroll a `#id` | E2E mobile | La variante móvil |
-| E8 | scroll a la sección N → el link N de la nav queda activo (scroll-spy) | E2E desktop | Wayfinding |
-| B1 | `astro check` sin errores de tipo | build | Tipos |
-| B2 | `scripts/check-data.mjs`: cada `productos[].zona` ∈ `zonas[].id` y cada `zonas[].productos[]` ∈ `productos[].slug` | build (`prebuild`) | El acoplamiento de ids no se rompe silenciosamente |
-| V1 | snapshot Playwright del hero y de 1 sección keynote | visual | Regresión de layout |
-| L1 | Lighthouse móvil ≥ 90 en Performance, LCP < 2.5s — **check manual** antes de mandar el link a José (no CI para la demo) | métrica | El Success Criteria de rendimiento |
+**Build checks (bloquean el build):**
+- `astro check` sin errores de tipo.
+- `scripts/check-data.mjs` (`prebuild`): cada `productos[].zona` ∈ `zonas[].id`; cada `zonas[].productos[]` ∈ `productos[].slug`.
+
+**Checklist manual** (antes de mandar el link a José — 10 min):
+
+| ✓ | Qué |
+|---|---|
+| | Móvil real: la escena carga, los marcadores se ven, el tap hace zoom y abre panel |
+| | `Esc` y "volver" cierran el panel; el foco no se pierde |
+| | Tab llega a los 4 hotspots; Enter abre el panel |
+| | Kettlebells/Gimnásticos/Cardio → panel "Pronto", no rompen |
+| | `prefers-reduced-motion` activado (SO) → el zoom es un corte, el panel aparece |
+| | Sin JS (DevTools) → los hotspots navegan a `#levantamiento`, la sección se ve |
+| | Lighthouse móvil: anotar el número (ver Plan B si < 90) |
+| | La ilustración carga con LQIP, sin salto de layout |
 
 **Modos de fallo por codepath:**
 
-| Codepath | Fallo realista en prod | ¿Test? | ¿Manejo? | ¿Usuario ve? |
-|---|---|---|---|---|
-| Tween de `viewBox` | AttrPlugin no interpola el string → salto brusco | E5 + prototipo Pasada 1 | corte de reduced-motion como red | salto feo (no roto) |
-| `backdrop-filter` panel | navegador sin soporte → panel translúcido ilegible | — | fondo sólido `#12172b` de fallback (en el plan) | panel opaco, legible |
-| id de zona desincronizado | link a `#id` inexistente → no pasa nada al click | B2 (build falla) | check de build | N/A (no llega a prod) |
-| Carga de la ilustración | asset falla/lento | — | LQIP de `astro:assets` + hotspots pre-posicionados | placeholder difuminado, layout estable |
-| ScrollTrigger sin JS | secciones nunca reciben la clase de entrada | E6 | secciones visibles por defecto (en el plan) | contenido completo, estático |
+| Codepath | Fallo realista | ¿Manejo? | ¿Usuario ve? |
+|---|---|---|---|
+| Tween `transform` cámara | jank en móvil viejo | `reduced-motion` = corte; `transform` es compositor-cheap | zoom con algún tirón, no roto |
+| `backdrop-filter` panel | sin soporte → ilegible | fondo sólido `#12172b` de fallback | panel opaco, legible |
+| id de zona desincronizado | link a `#id` inexistente | `check-data.mjs` falla el build | N/A (no llega a prod) |
+| Carga de la ilustración | asset lento/falla | LQIP de `astro:assets` + hotspots pre-posicionados | placeholder difuminado, layout estable |
+| ScrollTrigger sin JS | sección sin clase de entrada | visible por defecto | contenido completo, estático |
 
 Ningún modo de fallo es silencioso-y-sin-manejo. Sin gaps críticos.
 
-## Open Questions
+## Preguntas para José — MANDAR ANTES DE CONSTRUIR
 
-1. **¿La marca GuaguaFit tiene color de acento definido?** El logo es monocromo azul marino. Necesito saberlo o José lo elige al aprobar.
-2. **¿"Guagua" apunta a un animal concreto?** (el logo parece una cabeza de roedor/paca agresiva). Afecta el tono de la ilustración del box y el copy.
-3. **¿La escena del box se genera con IA o José tiene fotos de su local?** Cambia entre ilustración estilizada (más control, más "Apple") y foto tratada (más auténtica).
-4. **¿El CTA final es WhatsApp, formulario, o "visítanos"?** Asumido WhatsApp. Confirmar número / mensaje pre-rellenado.
-5. **Idioma:** ¿solo español, o español + inglés? Asumido solo español para la demo.
+Son un WhatsApp y cambian el build. No arrancar el código hasta tener respuesta (o asumir explícitamente).
+
+1. **¿La marca tiene color de acento?** El logo es monocromo azul marino. Se asume naranja `#FF5722`; si hay otro, cambia `tailwind.config` y los marcadores.
+2. **¿"Guagua" es un animal concreto?** El logo parece cabeza de roedor/paca. Afecta el tono de la ilustración y el copy.
+3. **¿La escena del box: la generamos por IA o José tiene fotos de su local?** Es la decisión que más cambia el trabajo (ilustración estilizada vs foto tratada) y el ítem más caro.
+4. **¿El CTA es WhatsApp, formulario, o "visítanos"?** Se asume WhatsApp; hace falta el número y el mensaje pre-rellenado. Cambia la sección keynote y la grilla.
+5. **¿Idioma: solo español, o + inglés?** Se asume español-only.
+
+**Dueño del copy:** los titulares, la frase de la zona Levantamiento y los ~5 nombres de producto los escribe **[definir: vos o José]**. Nombres inventados tienen el mismo problema que precios inventados — confunden a José sobre qué aprueba. Si los escribís vos, marcarlos como placeholder al presentar.
 
 ## Success Criteria
 
-- José abre la URL en su teléfono; el gymBox carga y es interactivo en **< 2.5s** en 4G.
-- En desktop: click en una zona → transición cinemática fluida (60fps) → productos de esa zona visibles en **< 1s**.
-- En móvil: la lista de zonas es clara y el tap lleva a la categoría correcta.
-- Lighthouse Performance ≥ 90 en móvil, sin animaciones a tirones.
-- José puede decir "sí, este es el concepto" o dar feedback concreto sobre estética — la demo comunica la idea sin que haya que explicarla.
+- José abre la URL **en su teléfono**; el gymBox carga y es interactivo (tap → zoom → panel) en **< 2.5s** en 4G.
+- El zoom por `transform` va fluido en un móvil de gama media (sin tirones perceptibles).
+- Tap en Levantamiento → panel con productos reales visible en **< 1s**.
+- Lighthouse Performance en móvil: objetivo ≥ 90 / LCP < 2.5s — **no bloqueante** (ver Plan B).
+- José puede decir "sí, este es el concepto" o dar feedback concreto sobre estética — la demo comunica la idea sin explicación.
+- Las 3 zonas "Pronto" dejan claro que hay más, sin parecer rotas.
 
 ## Distribution Plan
 
@@ -223,35 +235,40 @@ Ningún modo de fallo es silencioso-y-sin-manejo. Sin gaps críticos.
 
 ## Dependencies
 
-- **Bloqueante blando:** ilustración/foto de la escena del box. Se puede arrancar con un placeholder gris con zonas marcadas y sustituir la imagen sin tocar código (las coordenadas de hotspot en `zonas.json`).
-- Fotos de producto placeholder (stock crossfit o generadas).
-- Confirmación de José sobre las Open Questions 1-4 antes del sitio de producción (no bloquea la demo).
+- **La ilustración de la zona Levantamiento** es el bloqueante duro. Depende de la respuesta de José a la pregunta 3 (IA vs foto). Se puede arrancar todo lo demás con un placeholder (rectángulo con la zona marcada) y sustituir sin tocar código.
+- Copy de la zona Levantamiento (~5 nombres de producto + 1 titular + 1 frase) — dueño por definir.
+- Respuestas de José a las 5 preguntas, o supuestos explícitos.
+- Cuenta de Vercel (paso de usuario en web).
 
 ## Next Steps
 
-Total estimado: **~3-6 h de trabajo asistido (CC)** repartidas en dos pasadas.
+Total estimado del slice: **~3-5 h (CC)**, la mitad en la ilustración. Expandir a las otras 3 zonas post-aprobación: ~1-2 h.
 
-**Pasada 1 — demo mecánica + tests (~2.5-3.5 h):**
-1. **Scaffold Astro + Tailwind + GSAP (imports modulares) + Playwright.** Página única, `zonas.json` (4 zonas) y `productos.json` con datos placeholder. `scripts/check-data.mjs` en `prebuild` (valida ids). `astro check` en el pipeline.
-2. **Nav sticky** con wordmark + 4 zonas + CTA WhatsApp + scroll-spy. (Andamiaje del hero, va primero.) → test E8.
-3. **GymBox desktop = hero:** placeholder SVG (4 `<rect>`), marcadores naranja siempre visibles, hero-copy con la instrucción, cámara por `AttrPlugin` sobre `viewBox` + scrim + panel-picker. **Prototipar el tween de `viewBox` primero** y confirmar la interpolación del string. → tests E1-E5.
-4. **Variante móvil** del GymBox (hero-copy + 4 tarjetas ≥88px + scroll a ancla). → test E7.
-5. **4 secciones keynote** con el layout fijo (badge · texto+CTA izq · imagen `<Image>` der · 4 puntos), ScrollTrigger (visibles por defecto, entrada aditiva), placeholders. Grilla de productos restantes debajo. → test E6 (sin-JS).
-6. **Suíte E2E** (E1-E8, B1-B2, V1) verde antes del deploy.
-7. **Habilitar deploy** (`gh repo create` + Vercel) y publicar.
+**Paso 0 — antes de tocar código (~5 min de Harold):**
+0. Mandarle a José las 5 preguntas por WhatsApp. Fijar dueño del copy. Si no hay respuesta rápida, anotar los supuestos y seguir.
 
-**Pasada 2 — pulido a nivel Success Criteria (~1-3 h):**
-8. **Confirmar identidad visual** con `/design-consultation` (color de acento real de la marca vs el naranja `#FF5722` asumido, confirmar Anton vs Oswald, tratamiento de imagen).
-9. **Iterar la ilustración del box** — reservar ~30-45 min solo para generar/seleccionar la escena (es el 100% del "wow"; resolver antes la Open Question 3: IA vs foto del local). Sustituir el placeholder pasándoselo a `<Image>`; las coordenadas de hotspot viven en `zonas.json`.
-10. **Assets y fuentes:** master de la ilustración ≤~220 KB AVIF@1600w para que `astro:assets` cumpla LCP; self-host de Anton + Inter (WOFF2, `font-display: optional`).
-11. **Accesibilidad y robustez:** foco/ARIA en hotspots y nav, targets táctiles ≥44px, re-correr E3/E4/E5/E6.
-12. **Medir (L1):** Lighthouse móvil ≥90, prueba en 4G real, mandar link final a José.
+**Slice — 1 zona completa (~3-5 h):**
+1. **Scaffold** Astro + Tailwind + GSAP (`gsap` + `ScrollTrigger`, modular) + Playwright. `zonas.json` (4 zonas, solo Levantamiento `activa`) + `productos.json` (~5 de Levantamiento). `scripts/check-data.mjs` en `prebuild`. `astro check`.
+2. **Habilitar deploy** (`gh repo create` + Vercel) YA — publicar el esqueleto para iterar con José desde el día 1.
+3. **Nav sticky** (wordmark + Levantamiento + WhatsApp). Scroll-spy trivial con 1 zona.
+4. **GymBox = hero** (móvil + desktop, misma técnica): escena con placeholder, hotspots `<button>` con marcador naranja siempre visible, hero-copy con la instrucción, **cámara por `transform` sobre `.camara`** + scrim + panel. **Prototipar el zoom primero en un móvil de gama media.** Levantamiento abre panel real; las otras 3 → "Pronto". → smoke S1, S2.
+5. **Sección keynote `#levantamiento`**: layout fijo (badge · título+frase+CTA izq · `<Image>` der · 4 puntos) + grilla de ~5 productos. ScrollTrigger visible por defecto.
+6. **Ilustración real de la zona Levantamiento** (IA o foto según José). Este es el ítem caro (~1-2 h): generar/seleccionar, ajustar para que el hotspot caiga limpio, pasar por `<Image>`. Master ≤ ~220 KB AVIF@1600w.
+7. **Assets/fuentes:** self-host Anton + Inter (WOFF2, `font-display: swap` + preload).
+8. **A11y + robustez:** foco/ARIA/trap en el panel, targets ≥44px, checklist manual completo.
+9. **Medir (L1) + entregar:** Lighthouse móvil (Plan B si < 90), prueba en 4G real, link a José con nota de qué es placeholder.
+
+**Post-aprobación (si José dice sí):**
+11. Expandir Kettlebells, Gimnásticos, Cardio (activar en `zonas.json`, ilustración de cada esquina, copy, productos). Generalizar el scroll-spy. Sección "Sobre GuaguaFit" + footer completos.
+
+**Paralelización:** el slice es mayormente secuencial — todo pasa por `GymBox.astro` + la página única + los estilos compartidos. La única lane independiente es **T6 (ilustración de la zona Levantamiento)**: es trabajo de asset (generación IA / edición de foto) que puede correr en paralelo con T3-T5 mientras el resto usa un placeholder. Merge cuando la ilustración esté lista (solo toca `src/assets/` y las coords de `zonas.json`).
 
 ## What I noticed about how you think
 
 - Elegiste "demo rápida / hackathon" en vez de "trabajo para cliente" aunque esto es literalmente trabajo para un cliente. Leo eso como instinto correcto: construir algo mostrable para José y dejar que él reaccione, en vez de planificar en el vacío. Es la jugada acertada.
 - Cuando te di la opción del 3D real (máximo impacto) fuiste directo a la escena 2D con hotspots. Priorizaste que cargue bien sobre el efecto más impresionante. Ese tipo de decisión — resistir la tentación del feature vistoso — es lo que separa una demo que funciona de una que impresiona en tu pantalla y se cae en la del cliente.
-- Aceptaste que la versión móvil del gymBox es trabajo real (~30% del componente) sin regatearlo. Mucha gente trata el móvil como un ajuste al final; tú lo pusiste en las premisas.
+- Aceptaste que la versión móvil del gymBox es trabajo real sin regatearlo. Mucha gente trata el móvil como un ajuste al final; tú lo pusiste en las premisas — y cuando la voz externa mostró que el plan igual lo había dejado como vista degradada, aceptaste el giro a cámara-lite sin defender lo anterior.
+- En la revisión de ingeniería aceptaste bajar tu propia suíte de tests cuando la voz externa dijo que era gold-plating para un artefacto desechable. Cambiar de opinión con evidencia nueva, sin apego a lo ya decidido, es raro y valioso.
 
 ## Approved Mockups
 
@@ -261,65 +278,67 @@ Total estimado: **~3-6 h de trabajo asistido (CC)** repartidas en dos pasadas.
 
 Fuente editable del wireframe: `scratchpad/wireframe.html` de la sesión (esquemático, no pulido).
 
-## NOT in scope (diseño, diferido a propósito)
+## NOT in scope (diferido a propósito)
 
-- **Sistema de diseño completo (DESIGN.md)** — se asume paleta `#12172b`/`#F4F5F7`/`#FF5722` y Anton+Inter; se confirma en `/design-consultation` antes de la Pasada 2.
-- **Estética final de la ilustración del box** — placeholder ahora; se decide IA vs foto tras validar la mecánica.
+- **Las otras 3 zonas completas (Kettlebells, Gimnásticos, Cardio)** — existen como hotspots "Pronto" en el slice; se construyen solo si José aprueba el concepto (paso 10).
+- **Sección "Sobre GuaguaFit" y footer completos** — versión mínima (2 frases / links) en el slice; se completan post-aprobación.
+- **Sistema de diseño (DESIGN.md)** — se asume `#12172b`/`#F4F5F7`/`#FF5722` + Anton/Inter; `/design-consultation` lo confirma después del slice.
 - **Páginas de detalle de producto, carrito, checkout** — v2, solo si José aprueba vender online.
-- **Modo claro / theming** — la demo es dark-only a propósito (lenguaje keynote).
-- **i18n / inglés** — español-only para la demo.
-- **Animación de transición entre secciones keynote** (tipo "carrusel horizontal") — se evaluó; para la demo, scroll vertical simple con los 4 puntos como indicador es suficiente.
-- **Content Collections de Astro (schema Zod)** — JSON planos alcanzan para 4 zonas; upgrade natural para v2 si el catálogo crece.
-- **Lighthouse CI** — para la demo, un check manual de Lighthouse (L1) antes de mandar el link. CI se justifica cuando esto sea producción.
-- **Snapshots visuales exhaustivos** — solo V1 (hero + 1 keynote). Cobertura visual completa es de v2.
+- **Modo claro / theming** — dark-only a propósito (lenguaje keynote).
+- **i18n / inglés** — español-only.
+- **Transición animada entre secciones keynote** (carrusel horizontal) — scroll vertical simple es suficiente.
+- **Content Collections de Astro (schema Zod)** — JSON planos alcanzan; upgrade para v2.
+- **Suíte E2E completa + Lighthouse CI + snapshots visuales** — este review lo propuso y la voz externa lo bajó: para un slice desechable, 2 smoke tests + checklist manual. La suíte vuelve cuando esto sea producción.
+- **Scroll-spy generalizado** — trivial con 1 zona; se generaliza al expandir.
 
 ## What already exists
 
 Repo nuevo. Único activo reutilizable: el logo (`LOGO JOSE NEGRO PNG.png` — cabeza de animal; `LETRAS GUAGUA FIT 2.png` — wordmark con textura grunge). No hay DESIGN.md, ni componentes, ni patrones previos.
 
 ## Implementation Tasks
-Sintetizado de `/plan-design-review` (F1-F4) y `/plan-eng-review` (T6-T10). Cada tarea deriva de un hallazgo concreto.
+Sintetizado de `/office-hours`, `/plan-design-review` (F1-F4), `/plan-eng-review` (A1-A3, P1, Q1) y la voz externa (giro a vertical slice). Orden = orden de build.
 
-- [ ] **T1 (P1, human: ~1.5h / CC: ~15min)** — nav — Nav sticky con wordmark, 4 zonas, CTA WhatsApp y scroll-spy
-  - Surfaced by: F3 wayfinding — página única sin nav persistente, no se puede volver al box desde una sección
-  - Files: `src/components/Nav.astro`, `src/layouts/Base.astro`, `src/scripts/scrollspy.ts`
-  - Verify: en cualquier scroll, la nav es visible y la zona activa se resalta; "Box" vuelve arriba
-- [ ] **T2 (P1, human: ~2h / CC: ~20min)** — gymbox — Marcadores de hotspot siempre visibles + instrucción en hero-copy
-  - Surfaced by: F1 affordance — "hover: highlight" no funciona en táctil ni comunica interactividad
-  - Files: `src/components/GymBox.astro`, `src/components/Hotspot.astro`, `src/data/zonas.json`
-  - Verify: sin mover el mouse, se ven los 4 círculos naranja + etiquetas; el hero dice "Tocá una zona…"; pulso respeta `prefers-reduced-motion`
-- [ ] **T3 (P2, human: ~1h / CC: ~10min)** — hero — Componer hero = gymBox (hero-copy izq, hotspots centro/der, scroll-cue)
-  - Surfaced by: F2 composición — "lockup + tagline" sin layout ni tagline
-  - Files: `src/components/GymBox.astro`, `src/data/site.json` (tagline)
-  - Verify: primer viewport = una composición (marca + titular + 1 frase + hotspots + scroll-cue), sin cards
-- [ ] **T4 (P2, human: ~1.5h / CC: ~15min)** — keynote — Layout fijo de sección keynote + estados de carga/vacío
-  - Surfaced by: F4 specificity — "un héroe de producto" sin spec; estados sin definir
+- [ ] **T0 (P1, human: ~5min)** — proceso — Mandar a José las 5 preguntas; fijar dueño del copy
+  - Surfaced by: Voz externa #4 — "no hay paso 'preguntarle a José' antes de construir"
+  - Verify: respuestas o supuestos explícitos anotados en el plan antes de T1
+- [ ] **T1 (P1, human: ~30min / CC: ~15min)** — scaffold — Astro + Tailwind + GSAP modular + Playwright + `check-data.mjs`
+  - Surfaced by: A3 (check de ids), P1 (imports modulares)
+  - Files: `astro.config.mjs`, `tailwind.config`, `scripts/check-data.mjs`, `package.json`, `src/data/*.json`
+  - Verify: `npm run build` corre `check-data` en `prebuild`; romper un `zona` lo hace fallar
+- [ ] **T2 (P1, human: ~15min)** — deploy — `gh repo create` + Vercel, publicar el esqueleto
+  - Surfaced by: Distribution — repo sin remoto; publicar temprano para iterar con José
+  - Verify: push a `master` → deploy automático; URL pública abre
+- [ ] **T3 (P1, human: ~2.5h / CC: ~30min)** — gymbox — Hero = GymBox (móvil + desktop): escena, hotspots `<button>` con marcador siempre visible, cámara por `transform`, scrim, panel
+  - Surfaced by: F1 (affordance), D3 (cámara-lite móvil), D4 (transform, no viewBox), F2 (hero=gymBox)
+  - Files: `src/components/GymBox.astro`, `src/components/Hotspot.astro`, `src/scripts/gymbox.ts`, `src/data/zonas.json`
+  - Verify: **prototipar el zoom en un móvil de gama media primero**; 4 marcadores visibles sin hover; tap Levantamiento abre panel, otras 3 "Pronto"; `Esc`/volver cierran, foco vuelve; `reduced-motion` = corte; sin JS navega a `#levantamiento`. Comentario ASCII de las 3 rutas en el componente.
+- [ ] **T4 (P1, human: ~1h / CC: ~15min)** — nav — Nav sticky (wordmark + Levantamiento + WhatsApp)
+  - Surfaced by: F3 wayfinding
+  - Files: `src/components/Nav.astro`, `src/layouts/Base.astro`
+  - Verify: sticky en todo el scroll; "Levantamiento" ancla a `#levantamiento`
+- [ ] **T5 (P1, human: ~1.5h / CC: ~20min)** — keynote — Sección `#levantamiento`: layout fijo + grilla de productos + estados
+  - Surfaced by: F4 specificity + estados
   - Files: `src/components/ZonaKeynote.astro`, `src/components/ProductGrid.astro`
-  - Verify: badge + texto/CTA izq + imagen der + 4 puntos; zona sin productos = "Pronto" gris no clickeable; sin salto de layout al cargar imágenes
-- [ ] **T5 (P3, human: ~20min / CC: ~5min)** — a11y — Contraste y targets táctiles
-  - Surfaced by: F4 — naranja sobre casi-negro borderline para cuerpo; tarjetas móviles sin tamaño
-  - Files: `tailwind.config`, `src/components/ZonaCard.astro`
-  - Verify: cuerpo siempre `#F4F5F7`; tarjetas móviles ≥44px de alto de target; naranja solo en UI/titulares grandes
-- [ ] **T6 (P1, human: ~1h / CC: ~20min)** — tests — Suíte E2E enfocada (Playwright) E1-E8 + B1-B2 + V1
-  - Surfaced by: Test review — el plan no tenía estrategia de tests; 12 codepaths sin cubrir
-  - Files: `playwright.config.ts`, `tests/gymbox.spec.ts`, `tests/mobile.spec.ts`, `tests/nojs.spec.ts`
-  - Verify: `npm test` verde contra `astro preview`
-- [ ] **T7 (P2, human: ~30min / CC: ~5min)** — data — `scripts/check-data.mjs` en `prebuild` valida ids de zona
-  - Surfaced by: A3 — el `id` de zona lo consumen 5 lugares; desincronía = link muerto silencioso
-  - Files: `scripts/check-data.mjs`, `package.json` (`prebuild`)
-  - Verify: romper un `zona` en `productos.json` → `npm run build` falla con mensaje claro
-- [ ] **T8 (P2, human: ~45min / CC: ~10min)** — assets — Pipeline de imágenes vía `astro:assets` (`<Image>`/`<Picture>`)
-  - Surfaced by: A1 — el plan reimplementaba a mano lo que `astro:assets` hace en build
-  - Files: `src/components/GymBox.astro`, `src/components/ZonaKeynote.astro`, `src/components/ZonaCard.astro`
-  - Verify: build emite AVIF+WebP+srcset+dimensiones; sin CLS en Lighthouse
-- [ ] **T9 (P2, human: ~20min / CC: ~5min)** — gymbox — Cámara vía `AttrPlugin`, imports GSAP modulares, gymBox sin pin
-  - Surfaced by: A2 + P1 — `gsap.core` no anima atributos; evitar el bundle `gsap/all`
-  - Files: `src/scripts/gymbox.ts`
-  - Verify: bundle GSAP ≤ ~52 KB gz; el prototipo confirma la interpolación del string `viewBox`
-- [ ] **T10 (P3, human: ~10min / CC: ~3min)** — gymbox — Comentario ASCII de las 3 rutas de interacción en `GymBox.astro`
-  - Surfaced by: Q1 — 3 codepaths (normal / reduced-motion / sin-JS) fáciles de dejar pudrir
-  - Files: `src/components/GymBox.astro`
-  - Verify: el comentario refleja las 3 ramas y coincide con los tests E5/E6
+  - Verify: badge + título/frase/CTA izq + `<Image>` der + 4 puntos; sin salto de layout al cargar; CTA WhatsApp presente
+- [ ] **T6 (P1, human: ~1-2h)** — assets — Ilustración real de la esquina Levantamiento (IA o foto según José)
+  - Surfaced by: Voz externa #2 — "el 100% del wow, sub-financiado"; es el ítem más caro
+  - Files: `src/assets/box-levantamiento.*`, ajustar `zonas.json` hotspot/zoom para que caiga limpio
+  - Verify: la zona se lee claramente; el hotspot cae sobre el rack/barras; pasa por `<Image priority>`, master ≤ ~220 KB AVIF@1600w
+- [ ] **T7 (P2, human: ~45min / CC: ~10min)** — assets — `astro:assets` en todos los componentes de imagen + fuentes self-host
+  - Surfaced by: A1 + voz externa #7 (font-display)
+  - Files: `GymBox.astro`, `ZonaKeynote.astro`, `ProductGrid.astro`, `src/styles/fonts.css`
+  - Verify: build emite AVIF+WebP+dimensiones (sin CLS); Anton/Inter self-host, `font-display: swap` + preload
+- [ ] **T8 (P2, human: ~1h / CC: ~15min)** — tests — 2 smoke Playwright (S1 desktop, S2 móvil) + checklist manual
+  - Surfaced by: Test review, recalibrado por voz externa #5
+  - Files: `playwright.config.ts`, `tests/smoke.spec.ts`
+  - Verify: `npm test` verde contra `astro preview`; checklist manual completo antes del envío
+- [ ] **T9 (P2, human: ~30min)** — a11y — Trap de foco en el panel, `role="dialog"`, targets ≥44px, contraste
+  - Surfaced by: F4 + A2 (panel modal)
+  - Files: `src/scripts/gymbox.ts`, `tailwind.config`
+  - Verify: foco atrapado mientras el panel está abierto; cuerpo siempre `#F4F5F7`
+- [ ] **T10 (P2, human: ~20min)** — medir — Lighthouse móvil + prueba 4G real + entregar a José
+  - Surfaced by: Success Criteria + voz externa #7 (Plan B)
+  - Verify: número anotado; si < 90 aplicar Plan B, no bloquear; link a José con nota de placeholders
 
 ## GSTACK REVIEW REPORT
 
@@ -327,12 +346,12 @@ Sintetizado de `/plan-design-review` (F1-F4) y `/plan-eng-review` (T6-T10). Cada
 |--------|---------|-----|------|--------|----------|
 | CEO Review | `/plan-ceo-review` | Scope & strategy | 0 | — | — |
 | Codex Review | `/codex review` | Independent 2nd opinion | 0 | — | — |
-| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 0 | NOT RUN | — |
+| Eng Review | `/plan-eng-review` | Architecture & tests (required) | 1 | ISSUES ADDRESSED (SCOPE_REDUCED) | 9 hallazgos: A1 astro:assets, A2/A3 datos+cámara, P1 GSAP, Q1 rutas, + suíte de tests añadida. 0 gaps críticos. |
 | Design Review | `/plan-design-review` | UI/UX gaps | 1 | ISSUES ADDRESSED | score 5.5/10 → 8/10, 4 decisiones (F1 affordance, F2 hero, F3 nav, F4 keynote+estados) |
 | DX Review | `/plan-devex-review` | Developer experience gaps | 0 | — | — |
 
-Además: 2 rondas de revisión adversaria en `/office-hours` antes de este review (20 issues, score 8/10).
-
-- **VERDICT:** DESIGN REVIEW addressed (8/10). Eng review required antes de shippear — correr `/plan-eng-review`.
+- **CROSS-MODEL:** voz externa (subagente Claude, mismo modelo — Codex no instalado) desafió el plan post-review. 4 tensiones aceptadas por el usuario: (1) móvil — cámara-lite en vez de vista degradada; (2) técnica de cámara — `transform` en vez de `viewBox`/AttrPlugin; (3) forma — **vertical slice de 1 zona** en vez de esqueleto de 4; (4) tests — 2 smoke + checklist manual en vez de suíte completa. También: preguntar a José las 5 preguntas ANTES de construir, `font-display: swap`, dueño del copy, Plan B de Lighthouse.
+- Antes: 2 rondas de revisión adversaria en `/office-hours` (20 issues, 8/10).
+- **VERDICT:** DESIGN + ENG addressed. El plan se reescribió a vertical slice. Listo para implementar (T0 = mandar preguntas a José).
 
 NO UNRESOLVED DECISIONS
