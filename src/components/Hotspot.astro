@@ -1,0 +1,143 @@
+---
+// Marcador de zona sobre la escena del box.
+// Progressive enhancement:
+//   - zona activa   -> <a href="#grips">  (sin JS navega a la sección keynote;
+//                       gymbox.ts intercepta el click y hace el zoom de cámara)
+//   - zona inactiva -> <button>            (sin JS no hace nada; con JS abre
+//                       el panel corto "Pronto")
+interface Zona {
+  id: string;
+  nombre: string;
+  activa: boolean;
+  hotspot: { left: number; top: number };
+}
+
+interface Props {
+  zona: Zona;
+}
+
+const { zona } = Astro.props;
+const style = `left:${zona.hotspot.left}%;top:${zona.hotspot.top}%`;
+const label = `Zona: ${zona.nombre}`;
+---
+
+{
+  zona.activa ? (
+    <a
+      class="hotspot"
+      href="#grips"
+      style={style}
+      data-hotspot={zona.id}
+      data-activa="true"
+      aria-label={label}
+    >
+      <span class="hotspot__ring" aria-hidden="true">
+        +
+      </span>
+      <span class="hotspot__label">{zona.nombre}</span>
+    </a>
+  ) : (
+    <button
+      class="hotspot"
+      type="button"
+      style={style}
+      data-hotspot={zona.id}
+      data-activa="false"
+      aria-label={label}
+    >
+      <span class="hotspot__ring" aria-hidden="true">
+        +
+      </span>
+      <span class="hotspot__label">{zona.nombre}</span>
+    </button>
+  )
+}
+
+<style>
+  .hotspot {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    /* target táctil >= 44px */
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--crema);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .hotspot__ring {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    border: 2px solid var(--crema);
+    color: var(--crema);
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+    background: rgba(17, 17, 16, 0.35);
+    transition:
+      background-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  @media (max-width: 900px) {
+    .hotspot__ring {
+      width: 44px;
+      height: 44px;
+    }
+  }
+
+  .hotspot__label {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(17, 17, 16, 0.82);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .hotspot:hover .hotspot__ring,
+  .hotspot:focus-visible .hotspot__ring {
+    background: var(--crema);
+    color: var(--negro);
+    box-shadow: 0 0 0 8px rgba(239, 231, 214, 0.14);
+  }
+
+  /* Pulso al cargar (1 ciclo). */
+  .hotspot__ring {
+    animation: hotspot-pulse 1.6s ease-out 1;
+  }
+
+  @keyframes hotspot-pulse {
+    0% {
+      transform: scale(0.9);
+      opacity: 0.4;
+    }
+    50% {
+      transform: scale(1.08);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hotspot__ring {
+      animation: none;
+    }
+  }
+</style>

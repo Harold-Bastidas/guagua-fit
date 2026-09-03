@@ -1,0 +1,26 @@
+[
+  {
+    "slug": "sun-grips",
+    "nombre": "Sun Grips",
+    "zona": "grips",
+    "precio": 140000,
+    "imagen": "sun-grips.jpg",
+    "descripcion": "Máxima adherencia y cero distracciones: agarre brutal sin importar el tipo de barra."
+  },
+  {
+    "slug": "iron-grips",
+    "nombre": "Iron Grips",
+    "zona": "grips",
+    "precio": 150000,
+    "imagen": "iron-grips.jpg",
+    "descripcion": "Calleras de caucho para atletas que no negocian su rendimiento."
+  },
+  {
+    "slug": "wristbands",
+    "nombre": "Wristbands",
+    "zona": "grips",
+    "precio": 35000,
+    "imagen": "wristbands.jpg",
+    "descripcion": "Soporte firme en cada WOD. Absorben el sudor y protegen tus muñecas en clean & jerk, snatch, handstand push-ups y toda la gimnasia."
+  }
+]

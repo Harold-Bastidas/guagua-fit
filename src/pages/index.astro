@@ -1,0 +1,122 @@
+---
+import { Image } from "astro:assets";
+import Base from "../layouts/Base.astro";
+import GymBox from "../components/GymBox.astro";
+import ZonaKeynote from "../components/ZonaKeynote.astro";
+import { waLink } from "../lib/format";
+import site from "../data/site.json";
+import cuy from "../assets/logo-guaguafit.png";
+
+const waHref = waLink(site.whatsapp, site.waMsg, "GuaguaFit");
+---
+
+<Base>
+  <GymBox />
+  <ZonaKeynote />
+
+  <!-- Sobre GuaguaFit — versión mínima (copy placeholder, marca de agua cuy). -->
+  <section class="sobre" aria-label="Sobre GuaguaFit">
+    <Image
+      src={cuy}
+      alt=""
+      width={520}
+      height={520}
+      loading="lazy"
+      class="sobre__mark"
+      aria-hidden="true"
+    />
+    <div class="sobre__body">
+      <h2 class="sobre__title">Sobre GuaguaFit</h2>
+      <p>
+        GuaguaFit nace en el box: material de entrenamiento elegido por
+        crossfitters, para crossfitters.
+      </p>
+      <p>Sin relleno. Solo lo que aguanta el WOD.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <a
+      class="footer__cta"
+      href={waHref}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Escríbenos por WhatsApp
+    </a>
+    <nav class="footer__social" aria-label="Redes sociales">
+      <span>Instagram (pronto)</span>
+      <span>TikTok (pronto)</span>
+    </nav>
+    <p class="footer__legal">© {new Date().getFullYear()} GuaguaFit</p>
+  </footer>
+</Base>
+
+<style>
+  .sobre {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(3rem, 10vw, 7rem) clamp(1rem, 5vw, 4rem);
+    max-width: 1200px;
+    margin-inline: auto;
+    border-top: 1px solid color-mix(in srgb, var(--crema) 12%, transparent);
+  }
+
+  .sobre__mark {
+    position: absolute;
+    right: -8%;
+    top: 50%;
+    transform: translateY(-50%);
+    width: min(520px, 60vw);
+    height: auto;
+    opacity: 0.06;
+    pointer-events: none;
+  }
+
+  .sobre__body {
+    position: relative;
+    max-width: 40ch;
+  }
+
+  .sobre__title {
+    margin: 0 0 1rem;
+    font-size: clamp(1.6rem, 5vw, 2.5rem);
+    color: var(--blanco);
+  }
+
+  .sobre__body p {
+    margin: 0 0 0.75rem;
+    color: var(--crema);
+  }
+
+  .footer {
+    padding: clamp(2.5rem, 8vw, 4rem) clamp(1rem, 5vw, 4rem);
+    border-top: 1px solid color-mix(in srgb, var(--crema) 12%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .footer__cta {
+    background: var(--blanco);
+    color: var(--negro);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 0.7rem 1.4rem;
+    border-radius: 999px;
+  }
+
+  .footer__social {
+    display: flex;
+    gap: 1.5rem;
+    color: color-mix(in srgb, var(--crema) 60%, transparent);
+    font-size: 0.85rem;
+  }
+
+  .footer__legal {
+    margin: 0;
+    color: color-mix(in srgb, var(--crema) 50%, transparent);
+    font-size: 0.8rem;
+  }
+</style>

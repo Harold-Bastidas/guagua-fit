@@ -1,0 +1,108 @@
+---
+import { Image } from "astro:assets";
+import { formatCOP, waLink } from "../lib/format";
+import site from "../data/site.json";
+import productos from "../data/productos.json";
+
+// Grilla de los 3 productos reales de la zona Grips y Muñequeras.
+// Copy/descripciones = BORRADOR de José (aprueba el texto final).
+const productImages = import.meta.glob<{ default: ImageMetadata }>(
+  "../assets/productos/*.{jpg,jpeg,png}",
+  { eager: true }
+);
+const resolve = (file: string) =>
+  productImages[`../assets/productos/${file}`]?.default;
+
+const items = productos.filter((p) => p.zona === "grips");
+---
+
+<div class="grid" aria-label="Productos de la zona Grips y Muñequeras">
+  {
+    items.map((p) => {
+      const img = resolve(p.imagen);
+      return (
+        <article class="card">
+          {img && (
+            <Image
+              src={img}
+              alt={p.nombre}
+              widths={[320, 480, 640]}
+              sizes="(max-width: 820px) 90vw, 30vw"
+              class="card__img"
+              loading="lazy"
+            />
+          )}
+          <h3 class="card__name">{p.nombre}</h3>
+          <p class="card__price">{formatCOP(p.precio)}</p>
+          <p class="card__desc">{p.descripcion}</p>
+          <a
+            class="card__cta"
+            href={waLink(site.whatsapp, site.waMsg, p.nombre)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Consultar por WhatsApp
+          </a>
+        </article>
+      );
+    })
+  }
+</div>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1rem, 3vw, 2rem);
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  @media (max-width: 820px) {
+    .grid {
+      grid-template-columns: 1fr;
+      max-width: 28rem;
+      margin-inline: auto;
+    }
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card__img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--crema) 8%, transparent);
+  }
+
+  .card__name {
+    margin: 1rem 0 0.25rem;
+    font-size: 1.25rem;
+    color: var(--blanco);
+  }
+
+  .card__price {
+    margin: 0 0 0.5rem;
+    color: var(--crema);
+    font-size: 0.95rem;
+  }
+
+  .card__desc {
+    margin: 0 0 1rem;
+    color: var(--crema);
+    font-size: 0.9rem;
+    flex: 1;
+  }
+
+  .card__cta {
+    align-self: flex-start;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    color: var(--crema);
+    font-size: 0.9rem;
+  }
+</style>

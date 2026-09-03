@@ -1,0 +1,162 @@
+---
+import { Image } from "astro:assets";
+import { waLink } from "../lib/format";
+import site from "../data/site.json";
+import ProductGrid from "./ProductGrid.astro";
+// Héroe de la sección keynote = iron-grips.jpg usada TAL CUAL.
+// TODO: fondo lila — Harold normaliza el fondo de esta foto después (no editar aquí).
+import heroImg from "../assets/productos/iron-grips.jpg";
+
+// Sección keynote de la zona Grips y Muñequeras. Visible por defecto;
+// ScrollTrigger solo AÑADE la entrada (fade + translateY 40→0).
+// Copy = BORRADOR aprobable de José.
+const waHref = waLink(site.whatsapp, site.waMsg, "Grips y Muñequeras");
+---
+
+<section id="grips" class="keynote" data-keynote>
+  <p class="keynote__badge">ZONA · GRIPS Y MUÑEQUERAS</p>
+
+  <div class="keynote__row">
+    <div class="keynote__col">
+      <h2 class="keynote__title">El agarre no se negocia.</h2>
+      <p class="keynote__lede">
+        Calleras y muñequeras para los WODs donde el agarre decide.
+      </p>
+      <a
+        class="keynote__cta"
+        href={waHref}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Consultar por WhatsApp
+      </a>
+    </div>
+
+    <div class="keynote__media">
+      <Image
+        src={heroImg}
+        alt="Iron Grips — calleras de caucho GuaguaFit"
+        widths={[420, 640, 900]}
+        sizes="(max-width: 820px) 90vw, 460px"
+        loading="lazy"
+        class="keynote__img"
+      />
+    </div>
+  </div>
+
+  <div class="keynote__dots" aria-hidden="true">
+    <span class="is-active"></span>
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+
+  <ProductGrid />
+</section>
+
+<style>
+  .keynote {
+    position: relative;
+    padding: clamp(3rem, 10vw, 7rem) clamp(1rem, 5vw, 4rem);
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+
+  .keynote__badge {
+    margin: 0 0 clamp(1.5rem, 4vw, 3rem);
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    color: var(--crema);
+  }
+
+  .keynote__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.5rem, 5vw, 4rem);
+    align-items: center;
+  }
+
+  @media (max-width: 820px) {
+    .keynote__row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .keynote__title {
+    margin: 0;
+    font-size: clamp(2rem, 6vw, 3.75rem);
+    line-height: 1.02;
+    color: var(--blanco);
+    letter-spacing: 0.01em;
+  }
+
+  .keynote__lede {
+    margin: 1.25rem 0 2rem;
+    font-size: clamp(1rem, 2.4vw, 1.35rem);
+    color: var(--crema);
+    max-width: 32ch;
+  }
+
+  .keynote__cta {
+    display: inline-block;
+    background: var(--blanco);
+    color: var(--negro);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 0.75rem 1.5rem;
+    border-radius: 999px;
+  }
+
+  .keynote__img {
+    width: 100%;
+    height: auto;
+    max-width: 460px;
+    border-radius: 12px;
+    /* TODO: fondo lila — la foto se usa tal cual hasta que Harold normalice el fondo. */
+  }
+
+  .keynote__dots {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+  }
+
+  .keynote__dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--crema) 30%, transparent);
+  }
+
+  .keynote__dots span.is-active {
+    background: var(--blanco);
+  }
+
+</style>
+
+<script>
+  import gsap from "gsap";
+  import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+  const reduced = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+  const el = document.querySelector<HTMLElement>("[data-keynote]");
+
+  if (el && !reduced) {
+    gsap.registerPlugin(ScrollTrigger);
+    // Estado inicial lo pone el JS (sin JS / reduced-motion => visible y estático).
+    gsap.set(el, { opacity: 0, y: 40 });
+    gsap.to(el, {
+      opacity: 1,
+      y: 0,
+      duration: 0.8,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: el,
+        start: "top 80%",
+      },
+    });
+  }
+</script>
