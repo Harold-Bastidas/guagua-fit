@@ -83,11 +83,16 @@ export function initGymBox(): void {
 
     const reduced = mqReduced.matches;
     const mobile = mqMobile.matches;
+    // La escena es panorámica: en móvil el object-fit:cover recorta los
+    // costados, así que el origen del zoom usa hotspotMobile si existe
+    // (misma razón por la que Hotspot.astro tiene --x-m/--y-m).
+    const zoomOrigin =
+      mobile && zona.hotspotMobile ? zona.hotspotMobile : zona.hotspot;
     const target = {
       scale: mobile ? 1.8 : zona.zoom.scale,
       xPercent: zona.zoom.x,
       yPercent: zona.zoom.y,
-      transformOrigin: `${zona.hotspot.left}% ${zona.hotspot.top}%`,
+      transformOrigin: `${zoomOrigin.left}% ${zoomOrigin.top}%`,
     };
 
     if (zona.activa) {

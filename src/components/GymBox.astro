@@ -1,8 +1,10 @@
 ---
+import { Image } from "astro:assets";
 import Hotspot from "./Hotspot.astro";
 import Panel from "./Panel.astro";
 import zonas from "../data/zonas.json";
 import productos from "../data/productos.json";
+import escena from "../assets/gymbox/escena.jpg";
 
 // ┌──────────────────────────────────────────────────────────────────────────┐
 // │ GymBox — hero interactivo. MISMA técnica en móvil y desktop.              │
@@ -22,22 +24,22 @@ const gripsProductos = gripsZona.productos
   .filter((p): p is (typeof productos)[number] => Boolean(p));
 ---
 
-<section class="gymbox" id="top" aria-label="El box GuaguaFit">
+<section class="gymbox" id="top" tabindex="-1" aria-label="El box GuaguaFit">
   <div class="camara" data-camara>
-    <!-- Escena del box = placeholder gris rotulado (la ilustración real por IA
-         la sustituye Harold; solo toca src/assets/ y las coords de zonas.json). -->
+    <!-- Escena del box (IA, src/assets/gymbox/escena.jpg). Ajustar aquí
+         (no en zonas.json) si se cambia la imagen y los hotspots se
+         desalinean. -->
     <div class="escena">
-      {
-        zonas.map((z) => (
-          <span
-            class="escena__rotulo"
-            style={`left:${z.hotspot.left}%;top:${z.hotspot.top}%`}
-            aria-hidden="true"
-          >
-            {z.nombre}
-          </span>
-        ))
-      }
+      <Image
+        src={escena}
+        alt=""
+        aria-hidden="true"
+        loading="eager"
+        fetchpriority="high"
+        widths={[640, 960, 1280, 1600, 1920, 2560]}
+        sizes="100vw"
+        class="escena__img"
+      />
 
       {zonas.map((z) => <Hotspot zona={z} />)}
     </div>
@@ -85,26 +87,32 @@ const gripsProductos = gripsZona.productos
     position: absolute;
     inset: 0;
     min-height: 100svh;
-    background:
-      radial-gradient(
-        circle at 30% 20%,
-        rgba(239, 231, 214, 0.06),
-        transparent 45%
-      ),
-      linear-gradient(160deg, #1c1c1a, #111110 60%);
+    background: var(--negro);
   }
 
-  .escena__rotulo {
+  .escena::after {
+    /* Scrim leve para que la copy/hotspots del hero mantengan contraste
+       sobre las zonas más claras de la ilustración. */
+    content: "";
     position: absolute;
-    transform: translate(-50%, -140%);
-    font-size: 0.62rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--crema) 45%, transparent);
-    border: 1px dashed color-mix(in srgb, var(--crema) 22%, transparent);
-    padding: 0.15rem 0.4rem;
-    border-radius: 3px;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      rgba(10, 10, 9, 0.55) 0%,
+      rgba(10, 10, 9, 0.15) 35%,
+      rgba(10, 10, 9, 0.1) 70%,
+      rgba(10, 10, 9, 0.4) 100%
+    );
     pointer-events: none;
+  }
+
+  .escena__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
   }
 
   .gymbox__copy {

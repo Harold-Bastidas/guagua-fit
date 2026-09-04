@@ -10,6 +10,10 @@ interface Zona {
   nombre: string;
   activa: boolean;
   hotspot: { left: number; top: number };
+  // La escena es una foto panorámica (~16:9): en portrait el object-fit:cover
+  // recorta los costados, así que el marcador necesita otra posición en
+  // móvil para seguir cayendo sobre el mismo punto de la ilustración.
+  hotspotMobile?: { left: number; top: number };
 }
 
 interface Props {
@@ -17,7 +21,8 @@ interface Props {
 }
 
 const { zona } = Astro.props;
-const style = `left:${zona.hotspot.left}%;top:${zona.hotspot.top}%`;
+const m = zona.hotspotMobile ?? zona.hotspot;
+const style = `--x:${zona.hotspot.left}%;--y:${zona.hotspot.top}%;--x-m:${m.left}%;--y-m:${m.top}%`;
 const label = `Zona: ${zona.nombre}`;
 ---
 
@@ -56,6 +61,8 @@ const label = `Zona: ${zona.nombre}`;
 <style>
   .hotspot {
     position: absolute;
+    left: var(--x);
+    top: var(--y);
     transform: translate(-50%, -50%);
     display: flex;
     flex-direction: column;
@@ -92,6 +99,11 @@ const label = `Zona: ${zona.nombre}`;
   }
 
   @media (max-width: 900px) {
+    .hotspot {
+      left: var(--x-m);
+      top: var(--y-m);
+    }
+
     .hotspot__ring {
       width: 44px;
       height: 44px;

@@ -1,0 +1,169 @@
+---
+import { getImage } from "astro:assets";
+import entradaDesktop from "../assets/gymbox/opcion_login.jpeg";
+import entradaMobile from "../assets/gymbox/opcion_login.jpeg_2K.jpeg";
+
+// Art-direction real (no solo resize): la vertical es un recorte/recomposición
+// distinto de la misma escena (letrero completo sin cortar en portrait), no
+// un resize de la horizontal. <picture> hace que cada dispositivo baje
+// SOLO la que le corresponde.
+const desktopImg = await getImage({
+  src: entradaDesktop,
+  widths: [960, 1280, 1600, 1920, 2560],
+  sizes: "100vw",
+  format: "webp",
+});
+const mobileImg = await getImage({
+  src: entradaMobile,
+  widths: [480, 768, 1080],
+  sizes: "100vw",
+  format: "webp",
+});
+
+// ┌──────────────────────────────────────────────────────────────────────────┐
+// │ Portal — fachada del box, primera vista de la página. UNA sola acción:    │
+// │ "entrar". Reutiliza la MISMA técnica de cámara que los hotspots del       │
+// │ gymBox (transform: scale, GSAP, sin viewBox/AttrPlugin).                  │
+// │                                                                          │
+// │   tap / Enter en "Entrar" ─┬─ reduced-motion? SÍ → corte directo,        │
+// │      (JS activo)           │     sin zoom, sin scrim animado             │
+// │                            └─ NO → zoom hacia la puerta (0.9-0.6s) →     │
+// │                                   scrim a negro opaco → scroll a #top →  │
+// │                                   scrim se disuelve, revela el gymBox    │
+// │   sin JS ───────────────────  <a href="#top"> salta a la sección de      │
+// │                                abajo sin animación                       │
+// └──────────────────────────────────────────────────────────────────────────┘
+---
+
+<section class="portal" data-portal aria-label="Entrada al box GuaguaFit">
+  <div class="portal__camara" data-portal-camara>
+    <picture>
+      <source
+        media="(max-width: 900px)"
+        srcset={mobileImg.srcSet.attribute}
+        sizes="100vw"
+      />
+      <img
+        src={desktopImg.src}
+        srcset={desktopImg.srcSet.attribute}
+        sizes="100vw"
+        alt="Fachada de GuaguaFit"
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+        width={desktopImg.attributes.width}
+        height={desktopImg.attributes.height}
+        class="portal__img"
+      />
+    </picture>
+  </div>
+
+  <a
+    class="portal__enter"
+    href="#top"
+    data-portal-enter
+    aria-label="Entrar al box"
+  >
+    <span>Entrar al box</span>
+    <span class="portal__enter-arrow" aria-hidden="true">↓</span>
+  </a>
+
+  <!-- Corte a negro de la transición (no confundir con el scrim semitransparente
+       del panel del gymBox: éste tapa TODO, nav incluido, para el efecto de
+       "cruzar la puerta"). -->
+  <div class="portal-scrim" data-portal-scrim aria-hidden="true"></div>
+</section>
+
+<style>
+  .portal {
+    position: relative;
+    min-height: 100svh;
+    overflow: hidden;
+    background: var(--negro);
+    cursor: pointer;
+  }
+
+  .portal__camara {
+    position: absolute;
+    inset: 0;
+    will-change: transform;
+    transform-origin: 50% 64%; /* centro de la puerta en la foto */
+  }
+
+  .portal__img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* object-position vertical no tiene efecto real en ninguna de las dos
+       fuentes: ambas fotos son más "anchas" que su viewport objetivo, así
+       que object-fit:cover siempre encuadra por altura (nunca recorta
+       arriba/abajo, solo a los costados). Por eso mobile usa una foto
+       recompuesta en vertical (opcion_login.jpeg_2K.jpeg) en vez de solo
+       reescalar la horizontal — así el letrero entra completo. */
+    object-position: center 30%;
+  }
+
+  .portal__enter {
+    position: absolute;
+    left: 50%;
+    bottom: clamp(2rem, 8vh, 4rem);
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    color: var(--crema);
+    text-decoration: none;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 16px rgba(10, 10, 9, 0.7);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .portal__enter-arrow {
+    font-size: 1rem;
+    animation: portal-bob 1.8s ease-in-out infinite;
+  }
+
+  @keyframes portal-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(6px);
+    }
+  }
+
+  .portal__enter:hover .portal__enter-arrow,
+  .portal__enter:focus-visible .portal__enter-arrow {
+    animation-play-state: paused;
+    transform: translateY(4px);
+  }
+
+  .portal-scrim {
+    position: fixed;
+    inset: 0;
+    z-index: 60; /* por encima del nav (50): corte real de pantalla completa */
+    background: var(--negro);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portal__enter-arrow {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  import { initPortal } from "../scripts/portal";
+  initPortal();
+</script>

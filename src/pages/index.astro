@@ -1,6 +1,7 @@
 ---
 import { Image } from "astro:assets";
 import Base from "../layouts/Base.astro";
+import Portal from "../components/Portal.astro";
 import GymBox from "../components/GymBox.astro";
 import ZonaKeynote from "../components/ZonaKeynote.astro";
 import { waLink } from "../lib/format";
@@ -11,6 +12,7 @@ const waHref = waLink(site.whatsapp, site.waMsg, "GuaguaFit");
 ---
 
 <Base>
+  <Portal />
   <GymBox />
   <ZonaKeynote />
 

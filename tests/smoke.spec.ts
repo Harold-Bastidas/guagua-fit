@@ -1,5 +1,30 @@
 import { test, expect } from "@playwright/test";
 
+// S0 — portal de entrada: tap "Entrar al box" → aterriza en el gymBox
+// (tag @s1: corre en el proyecto desktop, mismo filtro que el resto de S1)
+test("@s1 carga / → portal visible → tap Entrar al box → revela #top", async ({
+  page,
+}) => {
+  const errors: string[] = [];
+  page.on("console", (msg) => {
+    if (msg.type() === "error") errors.push(msg.text());
+  });
+
+  await page.goto("/");
+
+  const portal = page.locator("[data-portal]");
+  await expect(portal).toBeVisible();
+  await expect(page.getByText("Entrar al box")).toBeVisible();
+
+  await page.locator("[data-portal-enter]").click();
+
+  // aterriza en el gymBox (#top), scrolleado a la vista
+  await expect(page.locator("#top")).toBeInViewport({ timeout: 5000 });
+  await expect(page.locator("[data-hotspot]").first()).toBeVisible();
+
+  expect(errors, `console errors: ${errors.join(" | ")}`).toEqual([]);
+});
+
 // S1 — desktop 1280x800
 test("@s1 carga / → 4 marcadores → tap Grips → panel con 3 productos → Ver zona → scroll a #grips", async ({
   page,

@@ -3,7 +3,8 @@
     "id": "grips",
     "nombre": "Grips y Muñequeras",
     "activa": true,
-    "hotspot": { "left": 62, "top": 34 },
+    "hotspot": { "left": 68, "top": 35 },
+    "hotspotMobile": { "left": 61, "top": 34 },
     "zoom": { "scale": 2.2, "x": -18, "y": -12 },
     "productos": ["sun-grips", "iron-grips", "wristbands"]
   },
@@ -11,7 +12,8 @@
     "id": "levantamiento",
     "nombre": "Levantamiento",
     "activa": false,
-    "hotspot": { "left": 26, "top": 40 },
+    "hotspot": { "left": 29, "top": 41 },
+    "hotspotMobile": { "left": 6, "top": 45 },
     "zoom": { "scale": 2, "x": 10, "y": -8 },
     "productos": []
   },
@@ -19,7 +21,8 @@
     "id": "kettlebells",
     "nombre": "Kettlebells",
     "activa": false,
-    "hotspot": { "left": 44, "top": 68 },
+    "hotspot": { "left": 57, "top": 78 },
+    "hotspotMobile": { "left": 50, "top": 75 },
     "zoom": { "scale": 2, "x": 4, "y": -22 },
     "productos": []
   },
@@ -27,7 +30,8 @@
     "id": "cardio",
     "nombre": "Cardio",
     "activa": false,
-    "hotspot": { "left": 82, "top": 58 },
+    "hotspot": { "left": 87, "top": 57 },
+    "hotspotMobile": { "left": 82, "top": 56 },
     "zoom": { "scale": 2, "x": -28, "y": -16 },
     "productos": []
   }
