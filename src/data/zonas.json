@@ -27,8 +27,8 @@
     "id": "magnesio",
     "nombre": "Magnesio",
     "activa": false,
-    "hotspot": { "left": 14, "top": 59 },
-    "hotspotMobile": { "left": 20, "top": 60 },
+    "hotspot": { "left": 19, "top": 58 },
+    "hotspotMobile": { "left": 22, "top": 58 },
     "zoom": { "scale": 2, "x": 8, "y": -10 }
   }
 ]
