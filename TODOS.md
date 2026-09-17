@@ -2,7 +2,7 @@
 
 ## Product
 
-### Expandir a las 3 zonas restantes (Levantamiento, Kettlebells, Cardio)
+### Expandir a las 3 zonas restantes (Levantamiento, Kettlebells, Magnesio)
 
 **What:** Construir las otras 3 zonas del gymBox al mismo nivel que "Grips y Muñequeras" — ilustración/coords reales, productos reales, dejan de mostrar "Pronto".
 

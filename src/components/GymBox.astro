@@ -48,10 +48,8 @@ const gripsProductos = productos.filter((p) => p.zona === gripsZona.id);
     </div>
   </div>
 
-  <div class="gymbox__copy">
-    <h1 class="gymbox__title">ENTRÁ AL BOX</h1>
-    <p class="gymbox__lede">Tocá una zona para ver qué hay.</p>
-  </div>
+  <h1 class="sr-only">GuaguaFit — entrá al box</h1>
+  <p class="gymbox__lede">Tocá una zona para ver qué hay.</p>
 
   <div class="gymbox__cue" aria-hidden="true">
     <span>Desplazá</span>
@@ -118,41 +116,37 @@ const gripsProductos = productos.filter((p) => p.zona === gripsZona.id);
     object-position: center;
   }
 
-  @media (max-width: 900px) {
-    .escena__img {
-      /* La escena es muy panorámica: en mobile `cover` solo deja ~26% del
-         ancho visible, centrado. Con el crop centrado el pegboard de
-         "grips" (la única zona activa) queda fuera de cuadro. Desplazamos
-         el punto de recorte hacia la derecha para priorizar la zona que
-         sí es interactiva hoy; kettlebells/levantamiento quedan fuera de
-         cuadro en mobile hasta que se aborde el TODO de las 4 zonas. */
-      object-position: 80% center;
-    }
-  }
+  /* La escena es muy panorámica: en mobile `cover` solo deja ~26% del
+     ancho visible, centrado en el punto de recorte. "Grips" (la única
+     zona activa) está cerca del centro de la imagen (barra de dominadas
+     del rig), así que el centrado por default ya la deja en cuadro —
+     a diferencia de la composición anterior, no hace falta desplazar
+     `object-position` en mobile. */
 
-  .gymbox__copy {
+  .sr-only {
     position: absolute;
-    left: clamp(1rem, 5vw, 3.5rem);
-    top: 22%;
-    z-index: 10;
-    max-width: 22ch;
-    pointer-events: none;
-  }
-
-  .gymbox__title {
-    margin: 0;
-    font-size: clamp(2.6rem, 9vw, 5.5rem);
-    line-height: 0.95;
-    letter-spacing: 0.02em;
-    color: var(--blanco);
-    text-shadow: 0 2px 24px rgba(10, 10, 9, 0.6);
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
   }
 
   .gymbox__lede {
-    margin: 1rem 0 0;
+    position: absolute;
+    top: 6.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    margin: 0;
+    text-align: center;
     font-size: clamp(1rem, 2.4vw, 1.35rem);
     color: var(--crema);
     text-shadow: 0 2px 16px rgba(10, 10, 9, 0.7);
+    pointer-events: none;
   }
 
   .gymbox__cue {
