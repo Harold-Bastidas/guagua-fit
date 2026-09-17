@@ -5,12 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "astro dev",
-    "check-data": "node scripts/check-data.mjs",
-    "prebuild": "node scripts/check-data.mjs && astro check",
+    "predev": "bun scripts/check-data.mjs",
+    "check-data": "bun scripts/check-data.mjs",
+    "prebuild": "bun scripts/check-data.mjs && astro check",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:unit": "bun test tests/check-data.spec.ts"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -23,6 +25,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.49.1",
+    "@types/bun": "^1.4.1",
     "@types/node": "^26.4.1"
   }
 }

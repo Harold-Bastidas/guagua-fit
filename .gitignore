@@ -24,5 +24,8 @@ pnpm-debug.log*
 .env
 .env.production
 
+# generado por scripts/check-data.mjs (fetch de la Google Sheet) — no se commitea
+src/data/productos.json
+
 # macos
 .DS_Store

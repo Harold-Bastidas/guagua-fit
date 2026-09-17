@@ -4,7 +4,7 @@ import Hotspot from "./Hotspot.astro";
 import Panel from "./Panel.astro";
 import zonas from "../data/zonas.json";
 import productos from "../data/productos.json";
-import escena from "../assets/gymbox/escena.jpg";
+import escena from "../assets/gymbox/final_gym_box.jpeg";
 
 // ┌──────────────────────────────────────────────────────────────────────────┐
 // │ GymBox — hero interactivo. MISMA técnica en móvil y desktop.              │
@@ -19,16 +19,19 @@ import escena from "../assets/gymbox/escena.jpg";
 // └──────────────────────────────────────────────────────────────────────────┘
 
 const gripsZona = zonas.find((z) => z.id === "grips")!;
-const gripsProductos = gripsZona.productos
-  .map((slug) => productos.find((p) => p.slug === slug))
-  .filter((p): p is (typeof productos)[number] => Boolean(p));
+// Membresía zona↔producto vive SOLO en productos[].zona (igual que
+// ProductGrid.astro) — zonas.json ya no tiene su propio array de slugs.
+// Antes había dos fuentes para el mismo dato: un producto podía pasar la
+// validación de build y aun así no aparecer acá si nadie actualizaba
+// zonas.json a mano. El orden lo da el orden de filas de la fuente de datos.
+const gripsProductos = productos.filter((p) => p.zona === gripsZona.id);
 ---
 
 <section class="gymbox" id="top" tabindex="-1" aria-label="El box GuaguaFit">
   <div class="camara" data-camara>
-    <!-- Escena del box (IA, src/assets/gymbox/escena.jpg). Ajustar aquí
-         (no en zonas.json) si se cambia la imagen y los hotspots se
-         desalinean. -->
+    <!-- Escena del box (IA, src/assets/gymbox/final_gym_box.jpeg — imagen
+         final aprobada por José). Ajustar aquí (no en zonas.json) si se
+         cambia la imagen y los hotspots se desalinean. -->
     <div class="escena">
       <Image
         src={escena}
@@ -113,6 +116,18 @@ const gripsProductos = gripsZona.productos
     height: 100%;
     object-fit: cover;
     object-position: center;
+  }
+
+  @media (max-width: 900px) {
+    .escena__img {
+      /* La escena es muy panorámica: en mobile `cover` solo deja ~26% del
+         ancho visible, centrado. Con el crop centrado el pegboard de
+         "grips" (la única zona activa) queda fuera de cuadro. Desplazamos
+         el punto de recorte hacia la derecha para priorizar la zona que
+         sí es interactiva hoy; kettlebells/levantamiento quedan fuera de
+         cuadro en mobile hasta que se aborde el TODO de las 4 zonas. */
+      object-position: 80% center;
+    }
   }
 
   .gymbox__copy {
