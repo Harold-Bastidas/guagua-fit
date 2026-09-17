@@ -2,8 +2,10 @@ import { describe, expect, test } from "bun:test";
 import {
   buildProductos,
   isSafeImageFilename,
+  looksLikeImage,
   normalizePrice,
   parseCSV,
+  toDirectDownloadUrl,
 } from "../scripts/check-data.mjs";
 
 const zonas = [
@@ -74,6 +76,44 @@ describe("isSafeImageFilename", () => {
   });
   test("extensión no soportada → inválido", () => {
     expect(isSafeImageFilename("sun-grips.gif")).toBe(false);
+  });
+});
+
+describe("toDirectDownloadUrl", () => {
+  test("link de compartir de Drive (/file/d/<id>/view) → uc?export=download", () => {
+    expect(
+      toDirectDownloadUrl("https://drive.google.com/file/d/1AbC-xyz_123/view?usp=sharing")
+    ).toBe("https://drive.google.com/uc?export=download&id=1AbC-xyz_123");
+  });
+
+  test("link viejo con ?id= → misma conversión", () => {
+    expect(toDirectDownloadUrl("https://drive.google.com/open?id=1AbC-xyz_123")).toBe(
+      "https://drive.google.com/uc?export=download&id=1AbC-xyz_123"
+    );
+  });
+
+  test("URL que no es de Drive → se devuelve sin cambios", () => {
+    const url = "https://example.com/fotos/producto.jpg";
+    expect(toDirectDownloadUrl(url)).toBe(url);
+  });
+});
+
+describe("looksLikeImage", () => {
+  test("magic bytes de JPEG → true", () => {
+    expect(looksLikeImage(Buffer.from([0xff, 0xd8, 0xff, 0xe0]))).toBe(true);
+  });
+
+  test("magic bytes de PNG → true", () => {
+    expect(looksLikeImage(Buffer.from([0x89, 0x50, 0x4e, 0x47]))).toBe(true);
+  });
+
+  test("página HTML (lo que devuelve Drive si el link no es público) → false", () => {
+    expect(looksLikeImage(Buffer.from("<!doctype html>"))).toBe(false);
+  });
+
+  test("buffer vacío o muy corto → false", () => {
+    expect(looksLikeImage(Buffer.alloc(0))).toBe(false);
+    expect(looksLikeImage(Buffer.from([0xff]))).toBe(false);
   });
 });
 

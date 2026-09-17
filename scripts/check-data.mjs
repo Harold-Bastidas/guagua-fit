@@ -3,6 +3,8 @@
  * check-data.mjs — corre en `prebuild` y `predev`.
  *
  * Fetchea la Google Sheet de productos (publicada como CSV, ver .env.example),
+ * descarga las fotos nuevas que José haya linkeado desde Drive (columna
+ * opcional `imagen_url`, ver downloadImage/toDirectDownloadUrl más abajo),
  * la parsea, la valida, y escribe src/data/productos.json. Falla con exit 1
  * (mensaje señalando la fila/columna exacta) si:
  *   - la Sheet no responde / responde con HTML en vez de CSV
@@ -10,7 +12,9 @@
  *   - una fila tiene: slug vacío o duplicado, nombre/descripcion vacíos,
  *     precio no-entero-positivo, zona inexistente o no activa, o
  *     imagen que no es un nombre de archivo simple .jpg/.jpeg/.png existente
- *     en src/assets/productos/
+ *     en src/assets/productos/ (o descargable desde `imagen_url`)
+ *   - `imagen_url` está presente pero la descarga falla o el contenido no
+ *     es una imagen válida (Drive devuelve HTML si el link no es público)
  *   - una zona activa queda con 0 productos válidos tras la validación
  *
  * `zonas.json[].id` + `.activa` siguen siendo la fuente de verdad de qué
@@ -32,7 +36,7 @@ const EXPECTED_COLUMNS = ["slug", "nombre", "zona", "precio", "imagen", "descrip
 const load = (name) => JSON.parse(readFileSync(resolve(dataDir, name), "utf8"));
 
 /**
- * @typedef {{ slug: string, nombre: string, zona: string, precio: string, imagen: string, descripcion: string }} SheetRow
+ * @typedef {{ slug: string, nombre: string, zona: string, precio: string, imagen: string, descripcion: string, imagen_url?: string }} SheetRow
  */
 
 // ┌──────────────────────────────────────────────────────────────────────────┐
@@ -220,6 +224,99 @@ export function buildProductos(rows, { zonas, imageFiles }) {
   return { productos, errors };
 }
 
+const DRIVE_ID_PATTERNS = [
+  /\/file\/d\/([a-zA-Z0-9_-]+)/, // .../file/d/<ID>/view?usp=sharing
+  /[?&]id=([a-zA-Z0-9_-]+)/, // .../open?id=<ID> o .../uc?id=<ID>
+];
+
+/**
+ * Convierte un link "Compartir" de Google Drive (el que José copia tal
+ * cual desde el menú de compartir) a su URL de descarga directa. Si la
+ * URL no es de Drive, se devuelve sin cambios — así también sirve
+ * cualquier otro host que sirva la imagen directo desde `imagen_url`.
+ * @param {string} url
+ * @returns {string}
+ */
+export function toDirectDownloadUrl(url) {
+  if (!/drive\.google\.com/.test(url)) return url;
+  for (const pattern of DRIVE_ID_PATTERNS) {
+    const m = url.match(pattern);
+    if (m) return `https://drive.google.com/uc?export=download&id=${m[1]}`;
+  }
+  return url;
+}
+
+/**
+ * Magic bytes de JPEG/PNG. Sirve para detectar que Drive devolvió una
+ * página HTML (link no compartido públicamente, o interstitial de "no
+ * se puede escanear este archivo") en vez del archivo real — un status
+ * 200 no alcanza para confiar en el contenido.
+ * @param {Buffer} buf
+ * @returns {boolean}
+ */
+export function looksLikeImage(buf) {
+  if (buf.length < 4) return false;
+  const jpeg = buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff;
+  const png = buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47;
+  return jpeg || png;
+}
+
+/**
+ * Descarga una imagen desde `imagen_url` (transformando el link de Drive
+ * si hace falta) y valida que el contenido sea realmente una imagen.
+ * @param {string} url
+ * @returns {Promise<Buffer>}
+ */
+async function downloadImage(url) {
+  const direct = toDirectDownloadUrl(url);
+  let res;
+  try {
+    res = await fetch(direct);
+  } catch (err) {
+    throw new Error(`no se pudo conectar (${err.message})`);
+  }
+  if (!res.ok) {
+    throw new Error(`respondió ${res.status} ${res.statusText}`);
+  }
+  const buf = Buffer.from(await res.arrayBuffer());
+  if (!looksLikeImage(buf)) {
+    throw new Error(
+      'el contenido descargado no es una imagen válida — ¿el link está compartido como "Cualquier usuario con el enlace"?'
+    );
+  }
+  return buf;
+}
+
+/**
+ * Descarga a src/assets/productos/ toda foto nueva que José haya
+ * linkeado desde Drive. Solo mira filas con `imagen_url` no vacío y un
+ * nombre de archivo seguro en `imagen` — el resto sigue el camino de
+ * siempre (debe existir ya en el repo). Se descarga siempre que haya
+ * `imagen_url`, no solo si falta el archivo, para que reemplazar la foto
+ * de un producto ya existente (misma fila, mismo nombre) también quede
+ * autónomo para José.
+ * @param {SheetRow[]} rows
+ * @returns {Promise<string[]>} errores, uno por fila fallida
+ */
+async function downloadLinkedImages(rows) {
+  const errors = [];
+  for (const row of rows) {
+    const url = (row.imagen_url ?? "").trim();
+    if (!url) continue;
+    if (!isSafeImageFilename(row.imagen)) continue; // buildProductos ya va a marcar este error
+
+    try {
+      const buf = await downloadImage(url);
+      writeFileSync(resolve(productosImgDir, row.imagen), buf);
+    } catch (err) {
+      errors.push(
+        `slug "${row.slug || "?"}": no se pudo descargar "${row.imagen}" desde imagen_url — ${err.message}`
+      );
+    }
+  }
+  return errors;
+}
+
 async function fetchSheetCSV(url) {
   let res;
   try {
@@ -262,6 +359,13 @@ async function main() {
     rows = parseCSV(csvText);
   } catch (err) {
     console.error(`\x1b[31m✖ check-data: ${err.message}\x1b[0m`);
+    process.exit(1);
+  }
+
+  const downloadErrors = await downloadLinkedImages(rows);
+  if (downloadErrors.length > 0) {
+    console.error("\x1b[31m✖ check-data: error descargando fotos desde Drive\x1b[0m");
+    for (const e of downloadErrors) console.error(`  - ${e}`);
     process.exit(1);
   }
 

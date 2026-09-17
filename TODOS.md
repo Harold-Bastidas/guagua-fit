@@ -16,14 +16,10 @@
 
 ---
 
-### Pipeline de fotos para productos 100% nuevos
+### ~~Pipeline de fotos para productos 100% nuevos~~ — hecho (2026-09-17)
 
-**What:** Permitir que José agregue un producto NUEVO (no solo editar uno existente) con su propia foto, sin pasar por Harold.
+Implementado: columna opcional `imagen_url` en la Sheet. José pega ahí el link de "Compartir" de Drive (el normal, sin tocar nada especial) de la foto del producto nuevo; `scripts/check-data.mjs` la descarga en cada build (convierte el link a descarga directa, valida que el contenido sea realmente una imagen — si el link no está compartido como "Cualquier usuario con el enlace", Drive devuelve HTML y el build falla con ese error puntual, no un mensaje genérico) y la guarda en `src/assets/productos/<imagen>`. Cero credenciales nuevas — mismo patrón de fetch anónimo que ya usa el resto del pipeline.
 
-**Why:** El swap de datos a Google Sheet (CEO plan 2026-09-04) resuelve editar precio/descripción/stock de productos ya cargados, pero un producto nuevo con foto nueva sigue necesitando que Harold suba el archivo al repo. Es el límite honesto de esa fase, no un descuido.
+**Pendiente:** agregar el header `imagen_url` a la fila 1 de la Sheet (Harold, manual — no hay API para editar celdas de Sheets) y avisarle a José el paso nuevo. Falta probar con una foto real compartida por él (el mecanismo de conversión de link está cubierto por tests unitarios, pero no se corrió contra un archivo de Drive realmente público por no tener forma de activar el toggle de sharing vía API).
 
-**Context:** Se evaluó reconsiderar toda la arquitectura hacia un formulario custom + imagen en un proveedor gestionado (Cloudinary/Uploadcare) que resolvería esto de raíz — el outside voice (Codex) lo propuso explícitamente. Se decidió mantener la Sheet por ahora: cero curva de aprendizaje para José vs. una pieza de software nueva para mantener. Revisar esta decisión si el volumen de productos nuevos hace doler "pasar por Harold" en la práctica. Si se retoma: José pega un link de imagen (Drive público o similar) en una columna de la Sheet, el build la descarga y procesa con `astro:assets` — tiene sus propios modos de falla (link roto, imagen gigante, formato raro) que habría que resolver.
-
-**Effort:** L (human ~1 día / CC ~2-3h)
-**Priority:** P3 — revisar en 3-6 meses según uso real
-**Depends on:** Ninguno bloqueante, pero tiene sentido después de validar que el resto del loop (edición de existentes) funciona bien en la práctica.
+**Si el volumen de fotos nuevas crece mucho:** reconsiderar la opción con cuenta de servicio (carpeta compartida una vez, José solo nombra el archivo = slug, sin copiar links por producto) — se evaluó y se descartó por ahora a favor de esta, más simple y sin credenciales que mantener.
